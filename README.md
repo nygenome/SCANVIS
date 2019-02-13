@@ -34,7 +34,7 @@ The next step is to score and annotate a set of splice junctions using the **SCA
 
 `scn=SCANVIS.scan(SJ,gen)`
 
-If the user requires coverage-based PSI scores for novel exons (see paper for more details), then we recommend running **SCANVIS.scan** by supplying urls to the bam url and to the executable samtools likeso:
+If the user requires coverage-based PSI scores for novel exons (see paper for more details), then we recommend running **SCANVIS.scan** by supplying urls to the bamfile and executable samtools likeso:
 
 `scn=SCANVIS.scan(<SJ>,gen,<BAM>,<SAMTOOLS>)`
 
