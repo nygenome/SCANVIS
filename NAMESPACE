@@ -1,0 +1,6 @@
+exportPattern("^[[:alpha:]]+")
+import("IRanges")
+import("RCurl")
+import("rtracklayer")
+import("plotrix")
+exportPattern("SCANVIS")
