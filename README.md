@@ -6,7 +6,7 @@ SCANVIS is a set of tools for **SC**oring, **AN**notating and **VIS**ualizing sp
 * Author: Phaedra Agius, [New York Genome Center](https://www.nygenome.org)
 * Email:  <pagius@nygenome.org> 
 
-SCANVIS is freely available for academic and non-commercial research purposes ([License](License.txt))
+SCANVIS is freely available for academic and non-commercial research purposes ([License](LICENSE))
 
 
 ## Installation
