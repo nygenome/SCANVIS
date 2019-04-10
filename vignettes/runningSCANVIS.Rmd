@@ -1,0 +1,92 @@
+---
+title: "SCANVIS runningSCANVIS"
+output: rmarkdown::pdf_vignette
+vignette: >
+  %\VignetteIndexEntry{"SCANVIS runningSCANVIS"}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+This vignette describes how to execute SCANVIS functions and the order in which the functions should be executed.
+
+## Annotation
+
+Before executing any of the main SCANVIS functions (scan, visual and linkvar), users must first have a SCANVIS-readable gene annotation file available. This vignette shows users how to download a GTF annotation file and convert it into SCANVIS-readable format using the SCANVIS.annotation function. Users should be sure to select the right GTF, the version that refers to the same reference genome in the BAM files corresponding to the samples. As an example, here we use human gencode v19. 
+
+```
+ftp.url='ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/'
+gen19=SCANVIS.annotation(ftp.url)
+```
+
+This will take a few minutes to run. Once you have this gene annotation object, you may use this across any number of samples that were aligned to the same reference genome. This object has the following components to it (which can be accessed using $ as is typical for lists in R): GENES, GENES.merged, EXONS and INTRONS. The component GENES contains all gene names/ids and full genomic coordinates while GENES.merged takes the union of those intervals for overlapping genes. EXONS contains full isoform and exon numbers/ids and coordinates, while INTRONS contains genomic coordinates of intronic regions that do not overlap any known exons within this annotation.
+
+## SCANning samples
+
+With this annotation object at hand, users can now execute the `scan` function to SCore and ANnotate each SJ in a sample. First, let's load up some example data:
+
+`data(SCANVIS_examples)`
+
+Several small examples will get loaded up, and gbm3 is one example in the format required by SCANVIS which can be submitted to the `scan` function:
+```
+head(gbm3)
+gbm3.scn=SCANVIS.scan(sj=gbm3,gen=gen19,Rcut=5)
+head(gbm3.scn)
+```
+
+Due to space restrictions, we did not include the full set of SJs for this particular example, nor do we provide the BAM file. However, if users have a bam file accessible, this is how the `scan` function would be executed:
+
+```gbm3.scn=SCANVIS.scan(gbm3,gen19,5,BAM,SAMTOOLS)```
+
+where BAM and SAMTOOLS are urls pointint to the BAM file and to the executable samtools function.
+
+## Mapping variants
+
+Once the `scan` function is executed on any number of samples, users can map variants to SJs using the `SCANVIS.linkvar` function. Note that this is optional, but should be executed prior to using the `merge` or `visual` functions if variants are available. The `linkvar` function looks for variants that are located in the same gene/s that overlap the SJ. The SCANVIS_examples (loaded up previously) includes a set of toy variants in the format required by `linkvar` function which can be executed likeso:
+
+```
+head(gbm3.vcf)
+gbm3.scnv=SCANVIS.linkvar(gbm3.scn,gbm3.vcf,gen19)
+head(gbm3.scnv)
+```
+
+When multiple variants map to the same gene/s that overlap the SJs, these are "|" separated. Some examples of this occur at the end of the output matrix:
+
+`tail(gbm3.scnv)`
+
+Users have the option to add some "padding" via the parameter `p` (default p=0) which maps SJs to variants that are `<=p` base pairs away from the borders of any genes overlapping the SJs. If we set `p=100` we now see SJs mapped to a variant chr6:46820148;Z>AA that was not previously mapped:
+
+```
+gbm3.scnvp=SCANVIS.linkvar(gbm3.scn,gbm3.vcf,gen19,p=100)
+table(gbm3.scnv[,'passedMUT'])
+table(gbm3.scnvp[,'passedMUT'])
+```
+
+The `linkvar` function may be executed any number of times for multiple variant sets/calls in the same sample. With each run, a new column is added indicating any variants mapping to the overlapping genes. 
+
+## Visualizing SJs in colorful sashimi plots
+Once variants (if any) have been linked, users can visualize SJs in regions of interest. To execute `SCANVIS.visual` users will need to define a region of interest (`roi` parameter) since the function executes a visual only on select regions. This parameter can either be defined as a single gene name OR a vector with multiple names OR a 3-bit vector with chr,start,end identifying the precise region of interst. The function will generate a sashimi plot showing annotated junctions in grey and unannotated junctions in various colors to indicate the type of junction. Frame-shifting junctions are indicated with dotted lines, with junctions that indcue a frame-shift across all isoforms having a slightly different line type than those that induce frame-shifts in just some isoforms. SJ arcs are overlaid with variants when the sample is variant-mapped by the `linkvar` function. Using two lung cell squamous carcinoma samples from TCGA that have been mapped to splice variants in the example data, let's visualize the PPA2 gene:
+
+```
+par(mfrow=c(2,1),mar=c(1,1,1,1))
+vis.lusc1=SCANVIS.visual('PPA2',gen19,LUSC[[1]],TITLE=names(LUSC)[1],full.annot=TRUE)
+vis.lusc2=SCANVIS.visual('PPA2',gen19,LUSC[[2]],TITLE=names(LUSC)[2],full.annot=TRUE,USJ='RRS')
+```
+
+To generate sashimi plots overlaid with a read profile, users can supply BAM urls likeso:
+`#vis.lusc1=SCANVIS.visual('PPA2',gen19,LUSC[[1]],TITLE=names(LUSC)[1],full.annot=TRUE,bam=<BAM4LUSC1>,samtools=<SAMTOOLS>)`
+
+
+Users can also highlight any SJs of interest. This is particularly useful for annotated SJs which are not as distinguishable as the unannotated ones that appear in color. To do this, users can specify SJs of interest via the `SJ.special` parameter likeso:
+```
+ASJ=tail(vis.lusc2$sj)[,1:3]
+c2=SCANVIS.visual('PPA2',gen19,LUSC[[2]],TITLE=names(LUSC)[2],full.annot=TRUE,SJ.special=ASJ)
+```
+
+To generate sashimi plots overlaid with a read profile, users can supply BAM urls likeso:
+`#vis.lusc1=SCANVIS.visual('PPA2',gen19,LUSC[[1]],TITLE=names(LUSC)[1],full.annot=TRUE,bam=<BAM4LUSC1>,samtools=<SAMTOOLS>)`
+
+To visualize multiple samples merged into one figure, submit the samples as a list likeso:
+
+`vis.lusc.merged=SCANVIS.visual('PPA2',gen19,LUSC,TITLE='Two LUSC samples, merged',full.annot=TRUE)`
+
+More parameter descriptions and examples on how to use `SCANVIS.visual` can be found in the `help` manual.
+
