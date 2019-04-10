@@ -18,7 +18,7 @@ To install directly from github:
 
 Alternatively you can download the gz tar and install on R>=3.5.0 by executing the following command:
 
-`install.packages('SCANVIS_1.0.tar.gz')`
+`install.packages('SCANVIS_0.99.0.tar.gz')`
 
 ### Dependencies
 Installation of SCANVIS requires the following R packages: IRanges,plotrix,RCurl,rtracklayer
