@@ -6,7 +6,7 @@ This function quickly generates color-coded sashimi plots for SCANVIS outputs sh
 Annotated SJs are depicted with grey arcs, while different colors segregate unannotated SJs. Arc height and thickness correspond to the junction read support and RRS score respectively. If the supplied junction file is output from SCANVIS.linkvar output, variants are also plotted. If the bam file is supplied, a normalized read coverage profile is shown as an inverted read profile. Users can submit multiple samples in which case the SCANVIS.merge function kicks in to merge the samples, so that the resulting sashimi plot shows the union of SJs over the submitted sample cohort, with RRS scores and read support averaged over the samples. This is useful for comparing disease cohorts.
 }
 \usage{
-SCANVIS.visual(roi,gen,scn,SJ.special,TITLE,bam,samtools,full.annot)
+SCANVIS.visual(roi,gen,scn,SJ.special,TITLE,bam,samtools,full.annot,USJ)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -33,9 +33,8 @@ SCANVIS.visual(roi,gen,scn,SJ.special,TITLE,bam,samtools,full.annot)
 
 \seealso{SCANVIS.scan, SCANVIS.linkvar}
 \examples{
-## Not run:
-data(scanvis_examples)
-#gen19 not included in package and can be downloaded from github.com/nygenome/SCANVIS/data
+data(SCANVIS_examples)
+gen19=get(load(url("https://github.com/nygenome/SCANVIS/blob/master/gen19.scanvis.Rdata?raw=true")))
 
 ### exon skip events in PPA2 in two LUSC samples
 par(mfrow=c(2,1),mar=c(1,1,1,1))

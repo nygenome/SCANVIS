@@ -33,9 +33,8 @@ SCANVIS.merge(scn,method,roi,gen)
 %\author{Phaedra Agius <pagius@nygenome.org>}
 \seealso{SCANVIS.scan, SCANVIS.linkvar, SCANVIS.visual}
 \examples{
-## Not run:
-data(scanvis_examples)
-#gen19 not included in package and can be downloaded from github.com/nygenome/SCANVIS/data
+data(SCANVIS_examples)
+gen19=get(load(url("https://github.com/nygenome/SCANVIS/blob/master/gen19.scanvis.Rdata?raw=true")))
 
 ### merge all SJs across in sample list GBM
 GBM.merged=SCANVIS.merge(GBM)

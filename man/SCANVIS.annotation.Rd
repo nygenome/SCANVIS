@@ -29,7 +29,6 @@ SCANVIS.annotation(ftp.url)
 %}
 
 \examples{
-## Not run:
 gen19=SCANVIS.annotation('ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/')
 }
 \keyword{gencode}

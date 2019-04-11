@@ -32,9 +32,8 @@ SCANVIS.linkvar(scn, bed, gen, p)
 \seealso{SCANVIS.scan, SCANVIS.annotation, SCANVIS.visual}
 
 \examples{
-## Not run:
-data(scanvis_examples)
-#gen19 not included in package and can be downloaded from github.com/nygenome/SCANVIS/data
+data(SCANVIS_examples)
+gen19=get(load(url("https://github.com/nygenome/SCANVIS/blob/master/gen19.scanvis.Rdata?raw=true")))
 
 gbm3.scn=SCANVIS.scan(sj=gbm3,gen=gen19,Rcut=5)
 ### Variant format required (these are toy variants)
