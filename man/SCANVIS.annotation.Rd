@@ -30,7 +30,7 @@ SCANVIS.annotation(ftp.url)
 
 \examples{
 ## Not run:
-gen28=SCANVIS.annotation('ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/')
+gen19=SCANVIS.annotation('ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/')
 }
 \keyword{gencode}
 \keyword{annotation}
