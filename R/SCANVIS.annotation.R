@@ -14,7 +14,7 @@ SCANVIS.annotation<-function(ftp.url){
 	gtf.url <- paste0(ftp.url, gtf.file)
 	fout=gsub('gtf.gz','rda',gtf.file)
 
-	RCurl::download.file(gtf.url, destfile = file.path(out.dir, gtf.file))
+	download.file(gtf.url, destfile = file.path(out.dir, gtf.file))
 	gencode <- rtracklayer::import.gff(file.path(out.dir, gtf.file), version = "2")
 	save(gencode, file = fout)
 
