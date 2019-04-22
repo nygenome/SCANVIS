@@ -1,0 +1,114 @@
+\documentclass[a4paper]{article}
+%\VignetteIndexEntry{SCANVIS}
+%\VignettePackage{SCANVIS}
+%\VignetteEngine{knitr::knitr}
+\usepackage{fancyvrb}
+\usepackage{color}
+
+\newcommand{\code}{\texttt}
+\newcommand{\pkg}{\textsf}
+\newcommand{\IRanges}{\pkg{IRanges}}
+\newcommand{\plotrix}{\pkg{plotrix}}
+\newcommand{\RCurl}{\pkg{RCurl}}
+\newcommand{\rtracklayer}{\pkg{rtracklayer}}
+
+\author{Phaedra Agius}
+\title{SCANVIS: SCoring, ANnotating and VISualzing splice junctions}
+
+\begin{document}
+
+\maketitle
+
+This document describes the main functions in SCANVIS, as well as how and when to execut the functions.
+
+\section{Introduction}
+
+SCANVIS is a tool for scoring and annotating splice junctions (SJs) with gene names, junction type and frame-shifts. It has a visualization function for generating static sashimi plots with annotation details differentiated by color and line types, and which can be overlaid with variants and read profiles. Samples in one cohort can also be merged into one figure for quick contrast to another cohort. To score and annotate a sample, SCANVIS requires two main inputs: SJ details (coordinates and split-read support) and SCANVIS-readable gene annotations. A function for extracting SCANVIS-readable annotation from a GTF file of choice is included in the package (see below). SCANVIS processes one sample at a time, the output being a matrix containing all original SJ details (coordinaes and read support)  together with the following annotation details: \textit{(i)} a Relative Read Support (RRS) score \textit{(ii)} the RRS genomic interval, and \textit{(iii)} names of gene/s that overlap the SJ. Unannotated SJs (USJs) are further described by \textit{(iv)} frame-shfits and \textit{(v)} junction type, this being either \textit{exon-skip}, \textit{alt5p}, \textit{alt3p}, \textit{IsoSwitch}, \textit{Unknown} or \textit{Novel Exon (NE)}. USJs described as \textit{IsoSwitch} are SJs that straddle two mutually exclusive isoforms while \textit{Unknown} USJs are contained in annotated intronic regions. A RRS genomic interval is defined as the minimal interval containing at least one gene overlapping the query SJ and at least one annotated SJ (ASJ). The RRS score is the ratio of \textit{x} to \textit{x+y}, where \textit{x} is the query junction read support and \textit{y} is the median read support of ASJs in the RRS genomic interval. This approaach keeps RRS scores free from undue influence of USJs which tend to be frequent, have poor read support and may be alignment artifacts. Once all SJs are scored and annotated, SCANVIS looks for potential \textit{NE}s defined by USJs coinciding in annotated intronic regions. \textit{NE}s are scored by the mean RRS of all SJs landing on the \textit{NE} start/end coordinates. If the BAM file is supplied (optional, see details below) SCANVIS also computes a Relative Read-Coverage (RRC) score for NEs only, defined as \textit{c/(c5+c+c3)} where \textit{c} is the mean \textit{NE} read coverage, and \textit{c5} and \textit{c3} are mean read coverages for flanking regions, both defined as intervals 0.2 times the \textit{NE} interval. Note that RRCs are only computed when users supply the BAM file, an optional feature in SCANVIS since BAMs are not always accessible to users. Also note that processing a sample with the bam file takes significantly longer and requires more compute memory.
+
+\section{SCANVIS Annotation data}
+
+SCANVIS functions require a SCAVNIS-readable gene annotation file. Users can generate their own annotation file using the \code{SCANVIS.annotation} function with a suitable GTF url. We provide the human gencode v19 as a downloadable example from the github link likeso:
+
+<<>>=
+gen19<-get(load(url("https://github.com/nygenome/SCANVIS/blob/master/gen19.scanvis.Rdata?raw=true")))
+@
+
+This annotation object is a list with the following components: GENES, GENES.merged, EXONS and INTRONS where GENES contains all gene names/ids and full genomic coordinates, GENES.merged is the union of the intervals in GENES so that overlapping genes are consolidated into one interval, EXONS contains full isoform and exon numbers/ids and coordinates and INTRONS contains genomic coordinates of intronic regions that do not overlap any known exons within this annotation. Once this gene annotation object is obtained, it can be used to process any number of samples that were aligned to the same reference genome as that used for the GTF source.
+
+
+\section{SCANning: SCoring and ANnotating splice junctions}
+
+With this annotation object users can now execute the \code{SCANVIS.scan} function to SCore and ANnotate each SJ in a sample. 
+The package contains a few examples that users can load up and reference. Specifically, the exemplary data include 2 LUSC (lung squamous cell carcinoma), 3 GBM (glioblastoma) and 2 LUAD (lung adenocarcinoma) samples, all derived from STAR \cite{STAR} alignments to TCGA samples. Due to package space restrictions, SJ details for select genomic regions only are included. Some samples are the output of \code{SCANVIS.scan} and are included for referenced in the \code{SCANVIS.visual} documentation, while one one sample named \code{gbm3} is prepared in the required format for \code{SCANVIS.scan} and can be processed likeso:
+
+<<>>=
+library(SCANVIS)
+data(SCANVIS_examples)
+head(gbm3)
+gbm3.scn<-SCANVIS.scan(sj=gbm3,gen=gen19,Rcut=5,bam=NULL,samtools=NULL)
+head(gbm3.scn)
+@
+
+If users have acess to the corresponding BAM file, they can supply the BAM url and an executable SAMTOOLS url to derive RRC scores for any Novel Exons detected. Note that the default settings for \code{bam} and \code{samtools} is NULL, and if \code{bam} points to a url then users must define \code{samtools} as the path to the executable samtools so that read depths can be estimated from the BAM file.
+
+
+\section{Mapping variants to SCANned junctions}
+
+Once a sample has been SCANned, users can map variants (if available) to SJs using the \code{SCANVIS.linkvar} function. While this function is optional, it should be executed prior to using \code{SCANVIS.merge} or \code{SCANVIS.visual} functions if variants are available. The \code{SCANVIS.linkvar} function maps a variant to a SJ if the variant is located in the same genomic interval described by the gene/s overlaping the SJ. In the examples included with the package there is a set of toy variants in the required format which can be mapped to the gbm3 example likeso:
+
+<<>>=
+head(gbm3.vcf)
+gbm3.scnv<-SCANVIS.linkvar(gbm3.scn,gbm3.vcf,gen19)
+head(gbm3.scnv)
+@
+
+When multiple variants map to the same gene/s overlapping a SJ, these are "|" separated. Some examples of this occur at the end of the output matrix:
+<<>>=
+tail(gbm3.scnv)
+@
+
+Users have the option to allow some padding or relaxation via the parameter $p$ (default $p=0$) which maps SJs to variants that are ${\leq p}$ base pairs away from the borders of any genes overlapping the SJs. If we set $p=100$ we now see SJs mapped to a variant chr6:46820148;Z>AA that was not previously mapped:
+
+<<>>=
+gbm3.scnvp<-SCANVIS.linkvar(gbm3.scn,gbm3.vcf,gen19,p=100)
+table(gbm3.scnv[,'passedMUT'])
+table(gbm3.scnvp[,'passedMUT'])
+@
+
+The \code{SCANVIS.linkvar} function may be executed any number of times for multiple variant sets/calls in the same sample. With each run, a new column is added indicating any variants mapping to the overlapping genes. 
+
+
+
+\section{VISualizing splice junctions in colorful sashimi plots}
+
+Once variants (if any) have been linked, users can visualize SJs in regions of interest. To execute \code{SCANVIS.visual} users will need to define a region of interest \code{roi} parameter since the function generates a visual of a select genomic region. The \code{roi} parameter can either be defined as a single gene name OR a vector with multiple gene names OR a 3-bit vector with chr,start,end identifying the precise region of interest. The function will then generate a sashimi plot showing annotated SJs in grey and unannotated SJs in various colors to indicate the type of junction. Frame-shifting junctions are indicated with dotted lines, with junctions that induce a frame-shift across all isoforms having a slightly different line type than those that induce frame-shifts in some isoforms. SJ arcs are overlaid with variants when the sample is variant-mapped. Using two lung cell squamous carcinoma samples from TCGA that have been mapped to splice variants in the example data, we can visualize the PPA2 gene likeso:
+
+<<>>=
+par(mfrow=c(2,1),mar=c(1,1,1,1))
+vis.lusc1<-SCANVIS.visual('PPA2',gen19,LUSC[[1]],TITLE=names(LUSC)[1],full.annot=TRUE,bam=NULL,samtools=NULL)
+vis.lusc2<-SCANVIS.visual('PPA2',gen19,LUSC[[2]],TITLE=names(LUSC)[2],full.annot=TRUE,bam=NULL,samtools=NULL,USJ='RRS')
+@
+
+If users wish to overlay a sashimi plots with a read profile, then suitable BAM and SAMTOOLS urls must be provided (default settings are both \code{NULL}). Users may also highlight any SJs of interest. This is particularly useful for annotated SJs which are not as distinguishable as the unannotated SJs that appear in color. To do this, users can specify SJs of interest via the \code{SJ.special} parameter likeso:
+
+<<>>=
+ASJ<-tail(vis.lusc2$sj)[,1:3]
+c2<-SCANVIS.visual('PPA2',gen19,LUSC[[2]],TITLE=names(LUSC)[2],full.annot=TRUE,SJ.special=ASJ)
+@
+
+To visualize multiple samples merged into one figure, submit the samples as a list likeso:
+
+<<>>=
+vis.lusc.merged<-SCANVIS.visual('PPA2',gen19,LUSC,TITLE='Two LUSC samples, merged',full.annot=TRUE)
+@
+
+More parameter descriptions and different examples on how to use \code{SCANVIS.visual} can be found in the \code{help} manual.
+
+\begin{thebibliography}{9}
+
+\bibitem[Dobin {\textit et~al}]{STAR}
+Dobin, Alexander \textit{et~al}. (2013) STAR: ultrafast universal RNA-seq aligner, {\textit Bioinformatics}, 29(1) 15-21.
+
+\end{thebibliography}
+
+\end{document}
