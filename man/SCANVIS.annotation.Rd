@@ -29,7 +29,7 @@ SCANVIS.annotation(ftp.url)
 %}
 
 \examples{
-gen19=SCANVIS.annotation('ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/')
+\dontrun{gen19=SCANVIS.annotation('ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/')}
 }
 \keyword{gencode}
 \keyword{annotation}

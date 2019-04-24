@@ -34,7 +34,7 @@ SCANVIS.merge(scn,method,roi,gen)
 \seealso{SCANVIS.scan, SCANVIS.linkvar, SCANVIS.visual}
 \examples{
 data(SCANVIS_examples)
-gen19=get(load(url("https://github.com/nygenome/SCANVIS/blob/master/gen19.scanvis.Rdata?raw=true")))
+gen19=get(load(url("https://github.com/nygenome/SCANVIS/blob/master/gen19_partial.scanvis.Rdata?raw=true")))
 
 ### merge all SJs across in sample list GBM
 GBM.merged=SCANVIS.merge(GBM)

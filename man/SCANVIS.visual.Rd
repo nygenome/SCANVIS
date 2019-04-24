@@ -34,7 +34,7 @@ SCANVIS.visual(roi,gen,scn,SJ.special,TITLE,bam,samtools,full.annot,USJ)
 \seealso{SCANVIS.scan, SCANVIS.linkvar}
 \examples{
 data(SCANVIS_examples)
-gen19=get(load(url("https://github.com/nygenome/SCANVIS/blob/master/gen19.scanvis.Rdata?raw=true")))
+gen19=get(load(url("https://github.com/nygenome/SCANVIS/blob/master/gen19_partial.scanvis.Rdata?raw=true")))
 
 ### exon skip events in PPA2 in two LUSC samples
 par(mfrow=c(2,1),mar=c(1,1,1,1))

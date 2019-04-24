@@ -43,7 +43,7 @@ and all other entries indicating frame shifts for specified isoforms. FrameStatu
 
 \examples{
 data(SCANVIS_examples)
-gen19=get(load(url("https://github.com/nygenome/SCANVIS/blob/master/gen19.scanvis.Rdata?raw=true")))
+gen19=get(load(url("https://github.com/nygenome/SCANVIS/blob/master/gen19_partial.scanvis.Rdata?raw=true")))
 head(gbm3) #required SJ format
 #gen19 not included in package and can be downloaded from github.com/nygenome/SCANVIS/data
 gbm3.scn=SCANVIS.scan(sj=gbm3,gen=gen19,Rcut=5)
