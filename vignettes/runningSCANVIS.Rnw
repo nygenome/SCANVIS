@@ -30,7 +30,7 @@ SCANVIS is a tool for scoring and annotating splice junctions (SJs) with gene na
 SCANVIS functions require a SCAVNIS-readable gene annotation file. Users can generate their own annotation file using the \code{SCANVIS.annotation} function with a suitable GTF url. We provide the human gencode v19 as a downloadable example from the github link likeso:
 
 <<>>=
-gen19<-get(load(url("https://github.com/nygenome/SCANVIS/blob/master/gen19.scanvis.Rdata?raw=true")))
+gen19<-get(load(url("https://github.com/nygenome/SCANVIS/blob/master/gen19_partial.scanvis.Rdata?raw=true")))
 @
 
 This annotation object is a list with the following components: GENES, GENES.merged, EXONS and INTRONS where GENES contains all gene names/ids and full genomic coordinates, GENES.merged is the union of the intervals in GENES so that overlapping genes are consolidated into one interval, EXONS contains full isoform and exon numbers/ids and coordinates and INTRONS contains genomic coordinates of intronic regions that do not overlap any known exons within this annotation. Once this gene annotation object is obtained, it can be used to process any number of samples that were aligned to the same reference genome as that used for the GTF source.
