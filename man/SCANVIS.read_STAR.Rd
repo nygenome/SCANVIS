@@ -13,7 +13,10 @@ SCANVIS.read_STAR(starSJ)
 
 %\author{Phaedra Agius <pagius@nygenome.org>}
 
-%\examples{
-%sj=SCANVIS.read_STAR(??)
-%}
+\examples{
+tmp=cbind(rep('chr1',10),seq(100,1000,100),seq(100,1000,100)+99,rep(2,10),rep(2,10),rep(0,10),c(rep(500,5),rep(8,5)),rep(0,10),rep(50,10))
+write.table(tmp,'tmp',sep='\t',quote=F,row.names=F,col.names=F)
+sj=SCANVIS.read_STAR('tmp')
+#sj is now suitable as input for SCANVIS.scan
+}
 \keyword{STAR}
