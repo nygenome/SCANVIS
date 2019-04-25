@@ -33,8 +33,6 @@ SCANVIS.linkvar(scn, bed, gen, p)
 
 \examples{
 data(SCANVIS_examples)
-gen19=get(load(url("https://github.com/nygenome/SCANVIS/blob/master/gen19_partial.scanvis.Rdata?raw=true")))
-
 gbm3.scn=SCANVIS.scan(sj=gbm3,gen=gen19,Rcut=5)
 ### Variant format required (these are toy variants)
 head(gbm3.vcf) 
