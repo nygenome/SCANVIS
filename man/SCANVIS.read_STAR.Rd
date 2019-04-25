@@ -14,8 +14,12 @@ SCANVIS.read_STAR(starSJ)
 %\author{Phaedra Agius <pagius@nygenome.org>}
 
 \examples{
-tmp=cbind(rep('chr1',10),seq(100,1000,100),seq(100,1000,100)+99,rep(2,10),rep(2,10),rep(0,10),c(rep(500,5),rep(8,5)),rep(0,10),rep(50,10))
-write.table(tmp,'tmp',sep='\t',quote=F,row.names=F,col.names=F)
+#set up toy example with chr,start,end,strand
+tmp=cbind(rep('chr1',10),seq(100,1000,100),seq(100,1000,100)+99,rep(2,10))
+#add in intron motif, annot, num read, num multimap reads, max overhang
+#see STAR manual for details
+tmp=cbind(tmp,rep(2,10),rep(0,10),c(rep(500,5),rep(8,5)),rep(0,10),rep(50,10))
+write.table(tmp,'tmp',sep='\t',quote=FALSE,row.names=FALSE,col.names=FALSE)
 sj=SCANVIS.read_STAR('tmp')
 #sj is now suitable as input for SCANVIS.scan
 }
