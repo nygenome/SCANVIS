@@ -1,8 +1,8 @@
 Package: SCANVIS
 Type: Package
 Title: SCANVIS
-Version: 0.99.8
-Date: 2019-04-04
+Version: 0.99.9
+Date: 2019-04-30
 Author: Phaedra Agius <pagius@nygenome.org>
 Maintainer: Phaedra Agius <pagius@nygenome.org>
 Depends: R(>= 3.5.1)
