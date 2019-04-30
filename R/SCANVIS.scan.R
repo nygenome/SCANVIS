@@ -32,7 +32,7 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     gen.EXONS=gen$EXONS
     gen.GENES=gen$GENES
     gen.GENES.merged=gen$GENES.merged
-    gen.INTRONS=gen$gen.INTRONS
+    gen.INTRONS=gen$INTRONS
     rm(gen)
     
     if(length(sj)==1)
@@ -66,20 +66,18 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     ############################################################################
     ##START: annotate SJs, ASJ and USJ
     sj=gsub(' ','',sj)
-    sj=cbind(sj,rep(0,nrow(sj)))
-    colnames(sj)[ncol(sj)]='JuncType'
+    gen=gen.EXONS
     options(scipen=999)
-    AUSJ=rep(0,nrow(sj))    
+    out=rep(0,nrow(sj))
     q=which(as.numeric(sj[,'end'])<as.numeric(sj[,'start']))
     if(length(q)>0)
-        sj[q,c('start','end')]=sj[q,c('end','start')]
+            sj[q,c('start','end')]=sj[q,c('end','start')]
     sj.tmp=paste(sj[,'chr'],sj[,'start'],sj[,'end'])
-    Q=which(gen.EXONS[,'type']=='exon')
-    q=intersect(Q,which(gen.EXONS[,'strand']=='+'))
-    tx=as.vector(t(cbind(gen.EXONS[q,'transcript'],gen.EXONS[q,'transcript'])))
-    tmp=as.vector(t(cbind(gen.EXONS[q,'chr'],gen.EXONS[q,'chr'])))
-    tmp2=as.vector(t(cbind(as.numeric(gen.EXONS[q,'start'])-1,
-        as.numeric(gen.EXONS[q,'end'])+1)))    
+    Q=which(gen[,'type']=='exon')
+    q=intersect(Q,which(gen[,'strand']=='+'))
+    tx=as.vector(t(cbind(gen[q,'transcript'],gen[q,'transcript'])))
+    tmp=as.vector(t(cbind(gen[q,'chr'],gen[q,'chr'])))
+    tmp2=as.vector(t(cbind(as.numeric(gen[q,'start'])-1,as.numeric(gen[q,'end'])+1)))       
     tx=t(matrix(tx[2:(length(tx)-1)],2,length(q)-1))
     tmp=t(matrix(tmp[2:(length(tmp)-1)],2,length(q)-1))
     tmp2=t(matrix(tmp2[2:(length(tmp2)-1)],2,length(q)-1))
@@ -89,35 +87,35 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     annot.tmp=paste(tmp[,1],tmp2[,1],tmp2[,2])
     z=intersect(sj.tmp,annot.tmp)
     q=which(is.element(sj.tmp,z))
-    AUSJ[q]=1
+    out[q]=1
 
-    q=intersect(Q,which(gen.EXONS[,'strand']=='-'))
-    tx=t(matrix(rev(as.vector(t(cbind(gen.EXONS[q,'transcript'],
-        gen.EXONS[q,'transcript'])))),2,length(q)))
-    tmp=t(matrix(rev(as.vector(t(cbind(gen.EXONS[q,'chr'],
-        gen.EXONS[q,'chr'])))),2,length(q)))
-    tmp2=t(matrix(rev(as.vector(t(cbind(as.numeric(gen.EXONS[q,'start']),
-        as.numeric(gen.EXONS[q,'end']))))),2,length(q)))
+    q=intersect(Q,which(gen[,'strand']=='-'))
+    tx=t(matrix(rev(as.vector(t(cbind(gen[q,'transcript'],gen[q,'transcript'])))),2,length(q)))
+    tmp=t(matrix(rev(as.vector(t(cbind(gen[q,'chr'],gen[q,'chr'])))),2,length(q)))
+    tmp2=t(matrix(rev(as.vector(t(cbind(as.numeric(gen[q,'start']),as.numeric(gen[q,'end']))))),2,length(q)))
     tmp3=cbind(tmp2[,2]-1,tmp2[,1]+1)
     z=c(1,length(tmp3))
     tx=matrix(tx[-z],length(q)-1,2)
     tmp=matrix(tmp[-z],length(q)-1,2)
     tmp3=matrix(tmp3[-z],length(q)-1,2)
     annot.tmp=paste(tmp[,1],tmp3[,2],tmp3[,1])
+    #annot.tmp=c(annot.tmp,paste(tmp[,1],tmp3[,1],tmp3[,2]))
     z=intersect(sj.tmp,annot.tmp)
     q=which(is.element(sj.tmp,z))
-    AUSJ[q]=1
+    out[q]=1
     annot.tmp=paste(tmp[,1],tmp3[,1],tmp3[,2])
     z=intersect(sj.tmp,annot.tmp)
     q=which(is.element(sj.tmp,z))
-    AUSJ[q]=1
+    out[q]=1
 
-    if(sum(AUSJ>0)>0) AUSJ[which(AUSJ==1)]='annot'
-    sj[,'JuncType']=AUSJ
+    out[which(out==1)]='annot'
+    sj=cbind(sj,out)
+    colnames(sj)[ncol(sj)]='JuncType'
+    gen=NULL
 
     ############################################################################
     ##START:describe USJs
-    print('*** Categorizing unannotated events ... ***')
+    print('*** Categorizing unannotated splice junctions ... ***')
     Q=which(sj[,'JuncType']!='annot')
     if(length(Q)>0){
     	sj.orig=sj
@@ -229,16 +227,16 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
 	    sj[Q,'JuncType']=out
 	    rm(sj.orig)
 	}
+    print('*** DONE: Categorizing unannotated splice junctions ***')
     ##END:describe USJs
     ############################################################################
 
-    print('*** DONE: Categorizing unannotated events ***')
     ##END: annotate SJs, ASJ and USJ
     ############################################################################
 
     ############################################################################
     ##START: compute RRS and assign gene names
-    print('*** Computing RRS by median of ASJ reads in each gene ... ***')
+    print('*** Computing RRS by median of local ASJ reads ... ***')
     #sj=sj2RRS(sj,gen.GENES)
     RRS=rep(-1,nrow(sj))
     gi=matrix('na',nrow(sj),2)
@@ -356,13 +354,12 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     tmp=colnames(sj)
     sj=cbind(sj,RRS,gi[,'genomic_interval'])
     colnames(sj)=c(tmp,'RRS','genomic_interval')
-    print('*** DONE: Computing RRS by median of ASJ reads in each gene ***')
+    print('*** DONE: Computing RRS by median of local ASJ reads ***')
     ##END: compute RRS and assign gene names
     ############################################################################
 
-
     ############################################################################
-    #START: assinging gene names
+    #START: assigning gene names
     print('*** Designating gene names to sj coordinates ... ***')
     gn=rep('intergenic',nrow(sj))
     ##merge gen.GENES first
@@ -391,6 +388,11 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     q=which(sj[,'gene_name']=='')
     if(length(q)>0)
         sj[q,'gene_name']='NONE'
+    #for multiple genes, sort in lexicographic order
+    q=grep(',',sj[,'gene_name'])
+    if(length(q)>0)
+        sj[q,'gene_name']=unlist(lapply(sj[q,'gene_name'],function(x) paste(sort(unique(unlist(strsplit(x,',')))),collapse=',')))
+
     print('*** DONE: Designating gene names to sj coordinates ***')
     ##END: assigning gene names
     ############################################################################
@@ -473,7 +475,7 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
 	            }
 	        }
 	    }
-        sj[QFS,ncol(sj)]=FS
+        sj[QFS,'FrameStatus']=FS
         print('*** DONE: Querying FrameStatus ***')
     }
     ##END: Querying inFrameStatus
@@ -692,5 +694,6 @@ IR2Mat<-function(I){
     tmp[,2]=tmp[,2]+tmp[,1]-1
     return(tmp)
 }
+
 
 
