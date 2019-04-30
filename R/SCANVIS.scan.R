@@ -392,7 +392,7 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     if(length(q)>0)
         sj[q,'gene_name']='NONE'
     print('*** DONE: Designating gene names to sj coordinates ***')
-    ##END: assinging gene names
+    ##END: assigning gene names
     ############################################################################
 
     ############################################################################
@@ -480,7 +480,7 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     ############################################################################
 
     ############################################################################
-    ##START: getting NEs by finding USJs that coincide in intronic regions
+    ##START: getting/scoring NEs by finding USJs that coincide in intronic regions
     print('*** Collecting and scoring all potential NEs ... ***')
     NE=NULL    
     USJ=gsub(' ','',sj[which(sj[,'JuncType']!='annot'),])
@@ -488,10 +488,10 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     if(length(CHR)==0) USJ[,'chr']=paste0('chr',USJ[,'chr'])
     CHR=intersect(unique(USJ[,'chr']),gen.INTRONS[,'chr'])
     colIDs=c('uniq.reads',colnames(USJ)[grep('RRS',colnames(USJ))])
+    QE=which(as.numeric(USJ[,'start'])==as.numeric(USJ[,'end']))
     for(chr in CHR){
         #print(chr)
         INtmp=gen.INTRONS[which(gen.INTRONS[,'chr']==chr),]
-        QE=which(as.numeric(USJ[,'start'])==as.numeric(USJ[,'end']))
         q=setdiff(which(USJ[,'chr']==chr),QE)
         sj.coor=cbind(as.numeric(USJ[q,'start']),as.numeric(USJ[q,'end']))
         NREADS=as.numeric(USJ[q,'uniq.reads'])
@@ -619,10 +619,8 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
         if(length(xx)>0) q=intersect(q,which(!is.element(tmp2,xx)))
         NE=NE[q,]
     }
-
-    ##END: getting NEs by finding USJs that coincide in intronic regions
     ############################################################################
-
+    #START: assigning RRS scores to NEs
     if(length(NE)>0){
         if(!is.matrix(NE)) NE=t(as.matrix(NE))
         print('*** Computing RRCs using bam file ***')
@@ -666,6 +664,10 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
 		    NE=cbind(NE,RRC[,2])
 		    colnames(NE)[ncol(NE)]='RRC'
         }
+    }
+    #END: assigning RRS scores to NEs
+    ############################################################################
+    if(length(NE)>0){
         tmp=matrix(NA,nrow(NE),ncol(sj))
         colnames(tmp)=colnames(sj)
         cc=c('chr','start','end','uniq.reads','gene_name','RRS')
@@ -677,7 +679,8 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
             colnames(sj)[ncol(sj)]='RRC'
         }    
     }
-    ##END: getting NEs by finding USJs that coincide in intronic regions
+    print('*** DONE: Collecting and scoring all potential NEs ... ***')
+    ##END: getting/scoring NEs by finding USJs that coincide in intronic regions
     ############################################################################
 
     return(sj)
