@@ -4,7 +4,7 @@
 \description{
 With this function, the RRS scores and number of supporting reads across a number of samples are collected into matrices by collecting the union of all SJs. Furthermore, a representative sample is assembled by computing the mean (or median) of RRSs and supporting reads across all samples - this may be used to visualize a cohort in one figure (see SCANVIS.visual).}
 \usage{
-SCANVIS.merge(scn,method,roi,gen)
+SCANVIS.merge(scn, method = "mean", roi = NULL, gen = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -35,9 +35,9 @@ SCANVIS.merge(scn,method,roi,gen)
 \examples{
 data(SCANVIS_examples)
 ### merge all SJs across in sample list GBM
-GBM.merged=SCANVIS.merge(GBM)
+GBM.merged<-SCANVIS.merge(GBM)
 ### only merge SJs intersecting with gene PTGDS
-GBM.merged=SCANVIS.merge(GBM,'mean','PTGDS',gen19)
+GBM.merged<-SCANVIS.merge(GBM,'mean','PTGDS',gen19)
 }
 
 \keyword{merge}

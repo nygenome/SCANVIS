@@ -6,7 +6,8 @@ This function quickly generates color-coded sashimi plots for SCANVIS outputs sh
 Annotated SJs are depicted with grey arcs, while different colors segregate unannotated SJs. Arc height and thickness correspond to the junction read support and RRS score respectively. If the supplied junction file is output from SCANVIS.linkvar output, variants are also plotted. If the bam file is supplied, a normalized read coverage profile is shown as an inverted read profile. Users can submit multiple samples in which case the SCANVIS.merge function kicks in to merge the samples, so that the resulting sashimi plot shows the union of SJs over the submitted sample cohort, with RRS scores and read support averaged over the samples. This is useful for comparing disease cohorts.
 }
 \usage{
-SCANVIS.visual(roi,gen,scn,SJ.special,TITLE,bam,samtools,full.annot,USJ)
+SCANVIS.visual(roi, gen, scn, SJ.special = NULL, TITLE = NULL, bam =
+                 NULL, samtools = NULL, full.annot = FALSE, USJ = "NR")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -36,34 +37,34 @@ SCANVIS.visual(roi,gen,scn,SJ.special,TITLE,bam,samtools,full.annot,USJ)
 data(SCANVIS_examples)
 ### exon skip events in PPA2 in two LUSC samples
 par(mfrow=c(2,1),mar=c(1,1,1,1))
-vis.lusc1=SCANVIS.visual('PPA2',gen19,LUSC[[1]],TITLE=names(LUSC)[1],full.annot=TRUE)
-vis.lusc2=SCANVIS.visual('PPA2',gen19,LUSC[[2]],TITLE=names(LUSC)[2],full.annot=TRUE,USJ='RRS')
+vis.lusc1<-SCANVIS.visual('PPA2',gen19,LUSC[[1]],TITLE=names(LUSC)[1],full.annot=TRUE)
+vis.lusc2<-SCANVIS.visual('PPA2',gen19,LUSC[[2]],TITLE=names(LUSC)[2],full.annot=TRUE,USJ='RRS')
 ### if bam file were available for LUSC1 ...
-#vis.lusc1=SCANVIS.visual('PPA2',gen19,LUSC[[1]],TITLE=names(LUSC)[1],full.annot=TRUE,bam=<BAM4LUSC1>,samtools=<SAMTOOLS>)
+#vis.lusc1<-SCANVIS.visual('PPA2',gen19,LUSC[[1]],TITLE=names(LUSC)[1],full.annot=TRUE,bam=<BAM4LUSC1>,samtools=<SAMTOOLS>)
 
 ### sashimi plots with variants
-gbm3.scn=SCANVIS.scan(sj=gbm3,gen=gen19,Rcut=5)
-gbm3.scnv=SCANVIS.linkvar(gbm3.scn,gbm3.vcf,gen19)
-vis.gbm3=SCANVIS.visual('PTGDS',gen19,gbm3.scnv,TITLE='gbm3')
-roi=vis.gbm3$roi
-d=diff(as.numeric(roi[2:3])) 
-roi2=c(roi[1],round(as.numeric(roi[2])+(d*0.1)),round(as.numeric(roi[3])-(d*0.5)))
+gbm3.scn<-SCANVIS.scan(sj=gbm3,gen=gen19,Rcut=5)
+gbm3.scnv<-SCANVIS.linkvar(gbm3.scn,gbm3.vcf,gen19)
+vis.gbm3<-SCANVIS.visual('PTGDS',gen19,gbm3.scnv,TITLE='gbm3')
+roi<-vis.gbm3$roi
+d<-diff(as.numeric(roi[2:3])) 
+roi2<-c(roi[1],round(as.numeric(roi[2])+(d*0.1)),round(as.numeric(roi[3])-(d*0.5)))
 ### Supply exact coordinates instead of gene names ... Zooming in for gbm3
-vis.gbm3.zoom=SCANVIS.visual(roi2,gen19,gbm3.scnv)
+vis.gbm3.zoom<-SCANVIS.visual(roi2,gen19,gbm3.scnv)
 
 ### plot multiple genes ... PTGDS and neighbors
-vis.gbm3.multiple_genes=SCANVIS.visual(c('FBXW5','PTGDS','C9orf142'),gen19,gbm3.scnv,TITLE='gbm3')
+vis.gbm3.multiple_genes<-SCANVIS.visual(c('FBXW5','PTGDS','C9orf142'),gen19,gbm3.scnv,TITLE='gbm3')
 
 par(mfrow=c(2,1),mar=c(1,1,1,1))
 ### see PTGDS in merge of 3 GBMs 
-GBM.PTGDS=SCANVIS.visual('PTGDS',gen19,GBM,TITLE='GBM, merged',full.annot=TRUE)
+GBM.PTGDS<-SCANVIS.visual('PTGDS',gen19,GBM,TITLE='GBM, merged',full.annot=TRUE)
 #### see PTGDS in merge of 3 LUADs ... no exon skips
-LUAD.PTGDS=SCANVIS.visual('PTGDS',gen19,LUAD,TITLE='LUAD, merged',full.annot=TRUE)
+LUAD.PTGDS<-SCANVIS.visual('PTGDS',gen19,LUAD,TITLE='LUAD, merged',full.annot=TRUE)
 
 ### NEs in GPR116 in LUAD, but not in GBM
 par(mfrow=c(2,1),mar=c(1,1,1,1))
-GBM.GPR116=SCANVIS.visual('GPR116',gen19,GBM,TITLE='GBM, merged',full.annot=TRUE)
-LUAD.GPR116=SCANVIS.visual('GPR116',gen19,LUAD,TITLE='LUAD, merged',full.annot=TRUE)
+GBM.GPR116<-SCANVIS.visual('GPR116',gen19,GBM,TITLE='GBM, merged',full.annot=TRUE)
+LUAD.GPR116<-SCANVIS.visual('GPR116',gen19,LUAD,TITLE='LUAD, merged',full.annot=TRUE)
 
 }
 \keyword{sashimi}
