@@ -2,7 +2,8 @@
 ##
 ## SCANVIS.annotation - script for preparing a gencode object for use in SCANVIS
 ##
-## eg.ftp.url='ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/'
+## Eg.
+## ftp.url='ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/'
 
 SCANVIS.annotation<-function(ftp.url){
 
@@ -15,7 +16,7 @@ SCANVIS.annotation<-function(ftp.url){
 	fout=gsub('gtf.gz','rda',gtf.file)
 
 	download.file(gtf.url, destfile = file.path(out.dir, gtf.file))
-	gencode<-rtracklayer::import.gff(file.path(out.dir, gtf.file), version = "2")
+	gencode<-rtracklayer::import.gff(file.path(out.dir, gtf.file),version="2")
 	save(gencode, file = fout)
 
 
@@ -23,7 +24,7 @@ SCANVIS.annotation<-function(ftp.url){
 	##read in gencode data and pull components needed
 	tmp=unlist(strsplit(unlist(strsplit(fout,'/')),'\\.'))
 	v=tmp[grep('v',tmp)]
-	print(paste0('****** Loading up gencode data: gencode version ',v,' ******'))
+	print(paste0('***** Loading up gencode data: gencode version ',v,' *****'))
 
 	gencode=get(load(fout)) 
 	x=as.matrix(gencode@ranges)
@@ -54,7 +55,8 @@ SCANVIS.annotation<-function(ftp.url){
 	for(chr in unique(gen.tmp[,'chr'])){
 		print(chr)
 		q=which(gen.tmp[,'chr']==chr)
-		v=coverage(IRanges(as.numeric(gen.tmp[q,'start']),as.numeric(gen.tmp[q,'end'])))
+		v=coverage(IRanges(as.numeric(gen.tmp[q,'start']),
+			as.numeric(gen.tmp[q,'end'])))
 		#I=cov2coor(v)
 		h=which(v@values==0)
 		end.pos=unlist(lapply(h,function(x) sum(v@lengths[seq(1,x,1)])))
@@ -64,12 +66,14 @@ SCANVIS.annotation<-function(ftp.url){
 
 		#these should all have zero intersection with genes
 		v2=findOverlaps(IRanges(I[,1],I[,2]),
-			IRanges(as.numeric(gen.tmp[q,'start']),as.numeric(gen.tmp[q,'end'])))
+			IRanges(as.numeric(gen.tmp[q,'start']),
+				as.numeric(gen.tmp[q,'end'])))
 		if(length(v2)>0) stop()
 
 		#now let's extract all exonic coordinates
 		q2=q[which(gen.tmp[q,'type']=='exon')]
-		v2=coverage(IRanges(as.numeric(gen.tmp[q2,'start']),as.numeric(gen.tmp[q2,'end'])))
+		v2=coverage(IRanges(as.numeric(gen.tmp[q2,'start']),
+			as.numeric(gen.tmp[q2,'end'])))
 		#I2=cov2coor(v2)
 		h=which(v2@values==0)
 		end.pos=unlist(lapply(h,function(x) sum(v2@lengths[seq(1,x,1)])))
@@ -107,7 +111,8 @@ SCANVIS.annotation<-function(ftp.url){
 	CHR=unique(gen$GENES[,'chr'])
 	for(chr in CHR){
 		q=which(gen$GENES[,'chr']==chr)
-		IR=IRanges(as.numeric(gen$GENES[q,'start']),as.numeric(gen$GENES[q,'end']))
+		IR=IRanges(as.numeric(gen$GENES[q,'start']),
+			as.numeric(gen$GENES[q,'end']))
 		M=reduce(IR) #merge intervals
 		v=as.matrix(findOverlaps(M,IR))
 		tmp=gen$GENES[q[v[,2]],'gene_name']

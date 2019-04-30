@@ -410,7 +410,7 @@ SCANVIS.visual<-function(roi,gen,scn,SJ.special=NULL,TITLE=NULL,bam=NULL,
         if(length(qq)==1) mut4plot=rbind(mut4plot,muts[qq,c(1,ncol(muts))])
     }
     if(length(mut4plot)>0){
-    	if(class(mut4plot)!='matrix') mut4plot=t(as.matrix(mut4plot))
+    	if(!is.matrix(mut4plot)) mut4plot=t(as.matrix(mut4plot))
 		##   A typical mut4plot entry in col1 might look like this: 
 		##   "chr1:953778 rs13303056 G->C|chr1:953779 rs13302945 A->C"
         ym0=0.005

@@ -77,7 +77,8 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     q=intersect(Q,which(gen[,'strand']=='+'))
     tx=as.vector(t(cbind(gen[q,'transcript'],gen[q,'transcript'])))
     tmp=as.vector(t(cbind(gen[q,'chr'],gen[q,'chr'])))
-    tmp2=as.vector(t(cbind(as.numeric(gen[q,'start'])-1,as.numeric(gen[q,'end'])+1)))       
+    tmp2=as.vector(t(cbind(as.numeric(gen[q,'start'])-1,
+        as.numeric(gen[q,'end'])+1)))       
     tx=t(matrix(tx[2:(length(tx)-1)],2,length(q)-1))
     tmp=t(matrix(tmp[2:(length(tmp)-1)],2,length(q)-1))
     tmp2=t(matrix(tmp2[2:(length(tmp2)-1)],2,length(q)-1))
@@ -90,9 +91,12 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     out[q]=1
 
     q=intersect(Q,which(gen[,'strand']=='-'))
-    tx=t(matrix(rev(as.vector(t(cbind(gen[q,'transcript'],gen[q,'transcript'])))),2,length(q)))
-    tmp=t(matrix(rev(as.vector(t(cbind(gen[q,'chr'],gen[q,'chr'])))),2,length(q)))
-    tmp2=t(matrix(rev(as.vector(t(cbind(as.numeric(gen[q,'start']),as.numeric(gen[q,'end']))))),2,length(q)))
+    tx=t(matrix(rev(as.vector(t(cbind(gen[q,'transcript'],
+        gen[q,'transcript'])))),2,length(q)))
+    tmp=t(matrix(rev(as.vector(t(cbind(gen[q,'chr'],
+        gen[q,'chr'])))),2,length(q)))
+    tmp2=t(matrix(rev(as.vector(t(cbind(as.numeric(gen[q,'start']),
+        as.numeric(gen[q,'end']))))),2,length(q)))
     tmp3=cbind(tmp2[,2]-1,tmp2[,1]+1)
     z=c(1,length(tmp3))
     tx=matrix(tx[-z],length(q)-1,2)
@@ -134,7 +138,8 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
 
 	        h=which(genEXONS[,'chr']==chr)
 	        gen.tmp=genEXONS[h,]
-	        gen.coor=cbind(as.numeric(genEXONS[h,'start']),as.numeric(genEXONS[h,'end']))
+	        gen.coor=cbind(as.numeric(genEXONS[h,'start']),
+                as.numeric(genEXONS[h,'end']))
 	        gen.strand=unique(genEXONS[h,c('transcript','strand')])
 	        if(length(h)>1){
 	            rownames(gen.strand)=gen.strand[,1]
@@ -391,7 +396,9 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     #for multiple genes, sort in lexicographic order
     q=grep(',',sj[,'gene_name'])
     if(length(q)>0)
-        sj[q,'gene_name']=unlist(lapply(sj[q,'gene_name'],function(x) paste(sort(unique(unlist(strsplit(x,',')))),collapse=',')))
+        sj[q,'gene_name']=unlist(lapply(sj[q,'gene_name'],
+            function(x) paste(sort(unique(unlist(strsplit(x,',')))),
+                collapse=',')))
 
     print('*** DONE: Designating gene names to sj coordinates ***')
     ##END: assigning gene names
@@ -482,7 +489,7 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     ############################################################################
 
     ############################################################################
-    ##START: getting/scoring NEs by finding USJs that coincide in intronic regions
+    ##START: getting/scoring NEs by finding USJs coinciding in intronic regions
     print('*** Collecting and scoring all potential NEs ... ***')
     NE=NULL    
     USJ=gsub(' ','',sj[which(sj[,'JuncType']!='annot'),])
@@ -642,7 +649,8 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
 		        row.names=FALSE,col.names=FALSE)
 		    sam.bed=paste0(BED[,1],':',BED[,2],'-',BED[,3])
 			nn=NULL
-			cmd=paste("-r sam.bed -f",fbam,"| awk '{ sum += $3 } END { print sum }'")
+			cmd=paste("-r sam.bed -f",fbam)
+            cmd=paste(cmd,"| awk '{ sum += $3 } END { print sum }'")
 			cmd=paste(samtools,'depth',cmd)
 			for(i in seq(1,nrow(sam.bed),1)){
 		        fout=paste0('tmp_',id,'__',i)
@@ -650,10 +658,11 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
 		        cmd.tmp=paste(cmd.tmp,'>',fout)
 		        system(cmd.tmp)
 			    if(file.info(fout)$size>1)
-		            nn=c(nn,as.numeric(as.matrix(read.delim(fout,header=FALSE))))
+		            nn=c(nn,as.matrix(read.delim(fout,header=FALSE)))
 		        system(paste('rm',fout))
-			}    
+			}
 		    system(paste('rm',fbam))
+            nn=as.numeric(nn)
 		    ii=1
 		    covB=nn[ii:nrow(BED)]
 		    ii=nrow(BED)+1
@@ -682,7 +691,7 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
         }    
     }
     print('*** DONE: Collecting and scoring all potential NEs ... ***')
-    ##END: getting/scoring NEs by finding USJs that coincide in intronic regions
+    ##END: getting/scoring NEs by finding USJs coinciding in intronic regions
     ############################################################################
 
     return(sj)
