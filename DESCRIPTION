@@ -1,11 +1,11 @@
 Package: SCANVIS
 Type: Package
 Title: SCANVIS
-Version: 0.99.13
+Version: 0.99.14
 Date: 2019-04-30
 Author: Phaedra Agius <pagius@nygenome.org>
 Maintainer: Phaedra Agius <pagius@nygenome.org>
-Depends: R(>=2.10)
+Depends: R (>= 2.10)
 Description: A tool for SCoring, ANnotating and VISualizing splice junctions  
 Imports: IRanges, plotrix, rtracklayer, RCurl
 License: file LICENSE
