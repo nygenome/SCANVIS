@@ -2,11 +2,11 @@
 
 SCANVIS is a set of tools for **SC**oring, **AN**notating and **VIS**ualizing splice junctions using gencode annotation. It scores splice junctions by using a Relative Read Support (RRS) measure that relates the reads supporting a query junction to reads supporting nearby annotated splice junctions. It annotates each splice junction, indicating whether it is supported by the annotation or not and what genes overlap the junction. For unannotated junctions, details on the junction type and whether it is in-frame or not are also provided. SCANVIS also has a visualization component that allows users to quickly view one or more samples in sashimi style plots, showing splice junctions and, optionally, a read coverage profile and/or mutations in one figure (see example [here](PPA2.LUSC.exon_skip.pdf)). These sashimi style plots are novel in that unannotated splice junctions are highlighted in various colours to delineate different junction types, with line styles indicating whether unannotated junctions are in frame or not, and junction arc heights and thickness corresponding to read support and RRS scores respectively. For more details on the software and usage, please see our paper and the [SCANVIS Manual](SCANVIS-manual.pdf).
 
-* Version: 0.99
+* Version: 0.99.15
 * Author: Phaedra Agius, [New York Genome Center](https://www.nygenome.org)
 * Email:  <pagius@nygenome.org> 
 
-SCANVIS is freely available for academic and non-commercial research purposes ([License](LICENSE))
+SCANVIS is freely available for academic and non-commercial research purposes only ([License](LICENSE))
 
 
 ## Installation
