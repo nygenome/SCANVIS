@@ -652,7 +652,7 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
 			cmd=paste("-r sam.bed -f",fbam)
             cmd=paste(cmd,"| awk '{ sum += $3 } END { print sum }'")
 			cmd=paste(samtools,'depth',cmd)
-			for(i in seq(1,nrow(sam.bed),1)){
+			for(i in seq(1,length(sam.bed),1)){
 		        fout=paste0('tmp_',id,'__',i)
 		        cmd.tmp=gsub('sam.bed',sam.bed[i],cmd)
 		        cmd.tmp=paste(cmd.tmp,'>',fout)
