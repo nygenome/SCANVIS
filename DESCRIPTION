@@ -1,12 +1,34 @@
 Package: SCANVIS
 Type: Package
-Title: SCANVIS
+Title: SCANVIS - a tool for SCoring, ANnotating and VISualizing splice junctions
 Version: 0.99.16
 Date: 2019-05-01
 Author: Phaedra Agius <pagius@nygenome.org>
 Maintainer: Phaedra Agius <pagius@nygenome.org>
 Depends: R (>= 3.5.1)
-Description: A tool for SCoring, ANnotating and VISualizing splice junctions  
+Description: SCANVIS is a set of annotation-dependent tools for analyzing
+splice junctions and their read support as predetermined by an alignment
+tool of choice (for example, STAR aligner). SCANVIS assesses relative
+read support (RRS) for a splice junction by relating it to the context of 
+local split reads aligning to annotated transcripts. Furthermore,
+SCANVIS also deeply annotates each splice junction, indicating whether the 
+junction is supported by annotation or not, and if not, what type of 
+junction it is (e.g. exon skipping, alternative 5' or 3' events, 
+Novel Exons). Unannotated junctions are also futher annotated by indicating 
+whether it induces a frame shift or not. SCANVIS also has a visualization 
+function that allows users to quickly generate static sashimi-style plots
+that clearly depict relative read support and actual read support using
+arc thickness and arc heights, making it easy for users to spot
+well-supported junctions. These plots also clearly delineate 
+unannotated junctions from annotated ones using designated color schemes,
+and users can also highlight splice junctions of choice. 
+Variants and/or a read profile are also incoroporated if the user 
+supplies variants in bed format and the BAM file.
+One further feature of the visualization function is that users
+can visualize multiple samples of a certain disease or cohort in a single
+figure - this occurs via a "merge" function wherein junction details 
+over multiple samples are merged to generate a single sashimi plot, which
+is useful when contrasting cohorots (eg. disease vs control).
 Imports: IRanges, plotrix, rtracklayer, RCurl
 License: file LICENSE
 Depends: IRanges,plotrix,RCurl,rtracklayer
