@@ -4,10 +4,9 @@
 ##
 ## Eg.
 ## ftp.url='ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/'
+## out.dir=getwd()
 
-SCANVIS.annotation<-function(ftp.url){
-
-	out.dir=getwd()
+SCANVIS.annotation<-function(ftp.url,out.dir){
 
 	ftp.files <- ls_url(ftp.url)
 
