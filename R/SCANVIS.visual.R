@@ -11,6 +11,10 @@
 ##        col matrix with chr,start,end which will be shown as cyan-colored arcs
 ##       TITLE=default is '', otherwise specify figure title
 ##       bam=default is NULL, otherwise specify url to bam for read profile plot
+##	 bam.dir.out=default is NULL, but MUST be specified if bam is not NULL
+##		This is the path to which temporary files can be downloaded
+##		when samtools assesses the bam file to build the read profile
+##		If running multiple samples in parallel, use different paths
 ##       samtools=default is NULL, otherwise path to your samtools, 
 ##                MUST be specified if bam is not NULL (default=NULL)
 ##       full.annot=TRUE for full annotation details, 
@@ -22,7 +26,7 @@
 ##       coordinates of the region plotted
 
 SCANVIS.visual<-function(roi,gen,scn,SJ.special=NULL,TITLE=NULL,bam=NULL,
-    samtools=NULL,full.annot=FALSE,USJ="NR"){
+    bam.dir.out=NULL,samtools=NULL,full.annot=FALSE,USJ="NR"){
 
     if(length(bam)>0 & length(samtools)==0){
         stop('For read coverage plots with bam, 
@@ -345,12 +349,13 @@ SCANVIS.visual<-function(roi,gen,scn,SJ.special=NULL,TITLE=NULL,bam=NULL,
         #plot.bam(roi,bam,samtools)
 		#plot.bam<-function(roi,bam,samtools){
 	    bed=paste0(roi[1],':',roi[2],'-',roi[3])
-	    write.table(bam,'tmpGRP.bam',sep='\t',quote=FALSE,
+	    fout.bam=paste0(bam.dir.out,'/tmpGRP.bam')
+	    write.table(bam,fout.bam,sep='\t',quote=FALSE,
 	        row.names=FALSE,col.names=FALSE)
 	    #print('*** Getting read depth from bam files ... ***')
-	    system(paste(samtools,'depth -a -r',bed,'-f tmpGRP.bam > tmpGRP'))
-	    tmp=as.matrix(read.delim('tmpGRP',header=FALSE))
-	    system('rm tmpGRP*')
+	    system(paste(samtools,'depth -a -r',bed,'-f tmpGRP.bam > ',fout.bam))
+	    tmp=as.matrix(read.delim(fout.bam,header=FALSE))
+	    system(paste('rm',fout.bam))
 	    dat=cbind(as.numeric(tmp[,2]),as.numeric(tmp[,3]))
 	    rm(tmp)
 	    n=nrow(dat)
