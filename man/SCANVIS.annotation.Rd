@@ -9,7 +9,6 @@ SCANVIS.annotation(ftp.url)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{ftp.url}{web url to gtf file}
-  \item{out.dir}{directory indicating where gencode object is to be downloaded}
 }
 %\details{Requires Rcurl and rtracklayer}
 
@@ -29,7 +28,7 @@ SCANVIS.annotation(ftp.url)
 %}
 
 \examples{
-\dontrun{gen19=SCANVIS.annotation('ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/',getwd())}
+\dontrun{gen19=SCANVIS.annotation('ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/')}
 }
 \keyword{gencode}
 \keyword{annotation}
