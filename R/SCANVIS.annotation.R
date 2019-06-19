@@ -23,7 +23,7 @@ SCANVIS.annotation<-function(ftp.url,out.dir){
 	##read in gencode data and pull components needed
 	tmp=unlist(strsplit(unlist(strsplit(fout,'/')),'\\.'))
 	v=tmp[grep('v',tmp)]
-	print(paste0('***** Loading up gencode data: gencode version ',v,' *****'))
+	message(paste0('***** Loading up gencode data: gencode version ',v,' *****'))
 
 	gencode=get(load(fout)) 
 	x=as.matrix(gencode@ranges)
@@ -48,11 +48,11 @@ SCANVIS.annotation<-function(ftp.url,out.dir){
 
 	#################################################################
 	#get intronic regions that do not overlap with any coding regions
-	print('***** Collecting intronic coordinates ... *****')
+	message('***** Collecting intronic coordinates ... *****')
 	gen=NULL
 	gen$INTRONS=NULL
 	for(chr in unique(gen.tmp[,'chr'])){
-		print(chr)
+		message(chr)
 		q=which(gen.tmp[,'chr']==chr)
 		v=coverage(IRanges(as.numeric(gen.tmp[q,'start']),
 			as.numeric(gen.tmp[q,'end'])))
@@ -94,7 +94,7 @@ SCANVIS.annotation<-function(ftp.url,out.dir){
 			gen$INTRONS=rbind(gen$INTRONS,out.tmp)
 		}
 	}
-	print('***** DONE: Collecting intronic coordinates *****')
+	message('***** DONE: Collecting intronic coordinates *****')
 	colnames(gen$INTRONS)=c('chr','start','end','InterGenic')
 	d=as.numeric(gen$INTRONS[,'end'])-as.numeric(gen$INTRONS[,'start'])
 	gen$INTRONS=gen$INTRONS[which(d>=2),]
@@ -134,7 +134,7 @@ SCANVIS.annotation<-function(ftp.url,out.dir){
 }
 
 ls_url <- function(url) {
-	print(url)	
+	message(url)	
 	stopifnot(url.exists(url))
 	out <- getURL(url, ftp.use.epsv = FALSE, dirlistonly = TRUE)
 	readLines(textConnection(out))
