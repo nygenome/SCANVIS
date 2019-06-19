@@ -26,21 +26,18 @@ SCANVIS.annotation<-function(ftp.url,out.dir){
 	message(paste0('***** Loading up gencode data: gencode version ',v,' *****'))
 
 	gencode=get(load(fout)) 
-	x=as.matrix(gencode@ranges)
+	x=as.matrix(ranges(gencode))
 	x[,2]=x[,1]+x[,2]-1
 	colnames(x)=c('start','end')
-	xg=cbind(as.vector(gencode@seqnames),
-			gencode@elementMetadata@listData$transcript_id,
-			gencode@elementMetadata@listData$gene_name,
-			gencode@elementMetadata@listData$gene_id,
-			gencode@elementMetadata@listData$exon_id,
-			gencode@elementMetadata@listData$exon_number,
-			as.vector(gencode@elementMetadata@listData$type),
-			as.vector(gencode@strand),
-			as.vector(gencode@elementMetadata@listData$gene_type))
-	colnames(xg)=c('chr','transcript','gene_name','gene_id','exon_id',
-		'exon_number','type','strand','gene_type')
-
+	tmp=c('transcript_id','gene_name','gene_id','exon_id',
+	      'exon_number','type','gene_type')
+        tmp=elementMetadata(gencode)[,tmp]
+        xg=matrix('',nrow(tmp),ncol(tmp))
+        for(i in seq(1,ncol(xg),1))
+	    xg[,i]=as.vector(tmp[,i])
+        xg=cbind(as.vector(seqnames(gencode)),xg,as.vector(strand(gencode)))
+        colnames(xg)=c('chr','transcript','gene_name','gene_id','exon_id',
+		       'exon_number','type','gene_type','strand')
 	gen.tmp=cbind(x,xg)
 	q=union(which(gen.tmp[,'type']=='exon'),which(gen.tmp[,'type']=='gene'))
 	gen.tmp=gen.tmp[q,]
@@ -57,9 +54,9 @@ SCANVIS.annotation<-function(ftp.url,out.dir){
 		v=coverage(IRanges(as.numeric(gen.tmp[q,'start']),
 			as.numeric(gen.tmp[q,'end'])))
 		#I=cov2coor(v)
-		h=which(v@values==0)
-		end.pos=unlist(lapply(h,function(x) sum(v@lengths[seq(1,x,1)])))
-		tmp=c(1,v@lengths)
+		h=which(values(v)==0)
+		end.pos=unlist(lapply(h,function(x) sum(lengths(v)[seq(1,x,1)])))
+		tmp=c(1,lengths(v))
 		start.pos=unlist(lapply(h,function(x) sum(tmp[seq(1,x,1)])))
 		I=cbind(start.pos,end.pos)
 
@@ -74,9 +71,9 @@ SCANVIS.annotation<-function(ftp.url,out.dir){
 		v2=coverage(IRanges(as.numeric(gen.tmp[q2,'start']),
 			as.numeric(gen.tmp[q2,'end'])))
 		#I2=cov2coor(v2)
-		h=which(v2@values==0)
-		end.pos=unlist(lapply(h,function(x) sum(v2@lengths[seq(1,x,1)])))
-		tmp=c(1,v2@lengths)
+		h=which(values(v2)==0)
+		end.pos=unlist(lapply(h,function(x) sum(lengths(v2)[seq(1,x,1)])))
+		tmp=c(1,lengths(v2))
 		start.pos=unlist(lapply(h,function(x) sum(tmp[seq(1,x,1)])))
 		I2=cbind(start.pos,end.pos)
 
