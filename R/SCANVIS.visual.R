@@ -11,7 +11,7 @@
 ##        col matrix with chr,start,end which will be shown as cyan-colored arcs
 ##       TITLE=default is '', otherwise specify figure title
 ##       bam=default is NULL, otherwise specify url to bam for read profile plot
-##	 bam.dir.out=default is NULL, but MUST be specified if bam is not NULL
+##	 bam.dir.out=default is NULL, otherwise MUST be specified if bam not NULL
 ##		This is the path to which temporary files can be downloaded
 ##		when samtools assesses the bam file to build the read profile
 ##		If running multiple samples in parallel, use different paths
