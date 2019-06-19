@@ -1,4 +1,4 @@
-## Phaedra Agius, April 2019
+## Phaedra Agius, June 2019
 ##
 ## SCANVIS.annotation - script for preparing a gencode object for use in SCANVIS
 ##
