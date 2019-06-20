@@ -4,9 +4,8 @@
 ##
 ## Eg.
 ## ftp.url='ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/'
-## out.dir=getwd()
 
-SCANVIS.annotation<-function(ftp.url,out.dir){
+SCANVIS.annotation<-function(ftp.url){
 
 	ftp.files <- ls_url(ftp.url)
 
@@ -16,16 +15,13 @@ SCANVIS.annotation<-function(ftp.url,out.dir){
 
 	download.file(gtf.url, destfile = file.path(out.dir, gtf.file))
 	gencode<-rtracklayer::import.gff(file.path(out.dir, gtf.file),version="2")
-	save(gencode, file = fout)
-
 
 	#################################################
 	##read in gencode data and pull components needed
 	tmp=unlist(strsplit(unlist(strsplit(fout,'/')),'\\.'))
 	v=tmp[grep('v',tmp)]
-	message(paste0('***** Loading up gencode data: gencode version ',v,' *****'))
+	message(paste0('**** Loading up gencode data: gencode version ',v,' ****'))
 
-	gencode=get(load(fout)) 
 	x=as.matrix(ranges(gencode))
 	x[,2]=x[,1]+x[,2]-1
 	colnames(x)=c('start','end')
@@ -43,20 +39,54 @@ SCANVIS.annotation<-function(ftp.url,out.dir){
 	gen.tmp=gen.tmp[q,]
 	rm(gencode)
 
+	qE=which(gen.tmp[,'type']=='exon')
+	qG=which(gen.tmp[,'type']=='gene')
+	gen=list(EXONS=gen.tmp[qE,],GENES=gen.tmp[qG,],
+		GENES.merged=gen.tmp[qG,c('chr','start','end','gene_name')],
+		INTRONS=matrix('',length(qE),4))
+
+	##################################################
+	#merge genes that have overlapping genomic regions
+	CHR=unique(gen[['GENES']][,'chr'])
+	for(chr in CHR){
+		q=which(gen[['GENES']][,'chr']==chr)
+		IR=IRanges(as.numeric(gen[['GENES']][q,'start']),
+			as.numeric(gen[['GENES']][q,'end']))
+		M=reduce(IR) #merge intervals
+		v=as.matrix(findOverlaps(M,IR))
+		tmp=gen[['GENES']][q[v[,2]],'gene_name']
+		tt=table(v[,1])
+		if(max(tt)>1){
+			for(j in as.numeric(names(tt)[which(tt>1)])){
+				h=which(v[,1]==j)
+				tmp[h]=rep(paste(unique(tmp[h]),collapse=','),length(h))
+			}
+		}
+		M=as.matrix(M)
+		M=cbind(M[,1],M[,1]+M[,2]-1)
+		M=cbind(M[v[,1],],tmp)
+		M=unique(cbind(chr,M))
+
+		q1=q[1:nrow(M)]
+		q0=setdiff(q,q1)
+		gen[['GENES.merged']][q1,]=M
+		gen[['GENES.merged']][q0,]=''
+	}
+	h=which(apply(gen[['GENES.merged']]=='',1,sum)!=4)
+	gen[['GENES.merged']]=gen[['GENES.merged']][h,]
+
 	#################################################################
 	#get intronic regions that do not overlap with any coding regions
 	message('***** Collecting intronic coordinates ... *****')
-	gen=NULL
-	gen$INTRONS=NULL
 	for(chr in unique(gen.tmp[,'chr'])){
 		message(chr)
 		q=which(gen.tmp[,'chr']==chr)
 		v=coverage(IRanges(as.numeric(gen.tmp[q,'start']),
 			as.numeric(gen.tmp[q,'end'])))
 		#I=cov2coor(v)
-		h=which(values(v)==0)
-		end.pos=unlist(lapply(h,function(x) sum(lengths(v)[seq(1,x,1)])))
-		tmp=c(1,lengths(v))
+		h=which(v@values==0)
+		end.pos=unlist(lapply(h,function(x) sum(v@lengths[seq(1,x,1)])))
+		tmp=c(1,v@lengths)
 		start.pos=unlist(lapply(h,function(x) sum(tmp[seq(1,x,1)])))
 		I=cbind(start.pos,end.pos)
 
@@ -71,9 +101,9 @@ SCANVIS.annotation<-function(ftp.url,out.dir){
 		v2=coverage(IRanges(as.numeric(gen.tmp[q2,'start']),
 			as.numeric(gen.tmp[q2,'end'])))
 		#I2=cov2coor(v2)
-		h=which(values(v2)==0)
-		end.pos=unlist(lapply(h,function(x) sum(lengths(v2)[seq(1,x,1)])))
-		tmp=c(1,lengths(v2))
+		h=which(v2@values==0)
+		end.pos=unlist(lapply(h,function(x) sum(v2@lengths[seq(1,x,1)])))
+		tmp=c(1,v2@lengths)
 		start.pos=unlist(lapply(h,function(x) sum(tmp[seq(1,x,1)])))
 		I2=cbind(start.pos,end.pos)
 
@@ -85,47 +115,21 @@ SCANVIS.annotation<-function(ftp.url,out.dir){
 		if(length(I)==2) I=c(I,'IG')
 		if(length(I2)>2) I2=cbind(I2,'nonIG')
 		if(length(I2)==2) I2=c(I2,'nonIG')
-		if(length(I)*length(I2)>0){
+		if(length(I)>0 & length(I2)>0){
 			out.tmp=cbind(chr,I)
 			out.tmp=rbind(out.tmp,cbind(chr,I2))
-			gen$INTRONS=rbind(gen$INTRONS,out.tmp)
+			Q=which(gen[['INTRONS']][,1]=='')[1:nrow(out.tmp)]
+			gen[['INTRONS']][Q,]=out.tmp
 		}
 	}
+	gen[['INTRONS']]=gen[['INTRONS']][which(gen[['INTRONS']][,1]!=''),]
+	colnames(gen[['INTRONS']])=c('chr','start','end','InterGenic')
+	d=as.numeric(gen[['INTRONS']][,'end'])-
+	  as.numeric(gen[['INTRONS']][,'start'])
+	gen[['INTRONS']]=gen[['INTRONS']][which(d>=2),]
+
 	message('***** DONE: Collecting intronic coordinates *****')
-	colnames(gen$INTRONS)=c('chr','start','end','InterGenic')
-	d=as.numeric(gen$INTRONS[,'end'])-as.numeric(gen$INTRONS[,'start'])
-	gen$INTRONS=gen$INTRONS[which(d>=2),]
 
-	##################################################
-	gen$EXONS=gen.tmp[which(gen.tmp[,'type']=='exon'),]
-	gen$GENES=gen.tmp[which(gen.tmp[,'type']=='gene'),]
-	##################################################
-
-	##################################################
-	#merge genes that have overlapping genomic regions
-	gen$GENES.merged=NULL
-	CHR=unique(gen$GENES[,'chr'])
-	for(chr in CHR){
-		q=which(gen$GENES[,'chr']==chr)
-		IR=IRanges(as.numeric(gen$GENES[q,'start']),
-			as.numeric(gen$GENES[q,'end']))
-		M=reduce(IR) #merge intervals
-		v=as.matrix(findOverlaps(M,IR))
-		tmp=gen$GENES[q[v[,2]],'gene_name']
-		tt=table(v[,1])
-		if(max(tt)>1){
-			for(j in as.numeric(names(tt)[which(tt>1)])){
-				q=which(v[,1]==j)
-				tmp[q]=rep(paste(unique(tmp[q]),collapse=','),length(q))
-			}
-		}
-		M=as.matrix(M)
-		M=cbind(M[,1],M[,1]+M[,2]-1)
-		M=cbind(M[v[,1],],tmp)
-		M=unique(cbind(chr,M))
-		gen$GENES.merged=rbind(gen$GENES.merged,M)
-	}
-	colnames(gen$GENES.merged)=c('chr','start','end','gene_name')
 
 	return(gen)
 }
@@ -136,5 +140,4 @@ ls_url <- function(url) {
 	out <- getURL(url, ftp.use.epsv = FALSE, dirlistonly = TRUE)
 	readLines(textConnection(out))
 }
-
 
