@@ -102,6 +102,10 @@ vis.lusc.merged<-SCANVISvisual('PPA2',gen19,LUSC,TITLE='Two LUSC samples, merged
 
 More parameter descriptions and different examples on how to use \code{SCANVISvisual} can be found in the \code{help} manual.
 
+<<>>=
+sessionInfo()
+@
+
 \begin{thebibliography}{9}
 
 \bibitem[Dobin {\textit et~al}]{STAR}
