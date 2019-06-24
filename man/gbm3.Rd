@@ -7,4 +7,4 @@ for each splice junction and corresonding number of supporting split reads}
 \usage{gbm3}
 \format{matrix}
 \keyword{datasets}
-\keyword{SCANVIS_examples}
+\keyword{SCANVISexamples}

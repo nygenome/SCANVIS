@@ -7,4 +7,4 @@ for each toy variant that has supposedly passed some threshold}
 \usage{gbm3}
 \format{matrix}
 \keyword{datasets}
-\keyword{SCANVIS_examples}
+\keyword{SCANVISexamples}

@@ -1,7 +1,7 @@
 \name{ls_url}
 \alias{ls_url}
 \title{list files available at annotation/gencode url}
-\description{Function called upon by SCANVIS.annotation for GTF file pulldown from url supplied}
+\description{Function called upon by SCANVISannotation for GTF file pulldown from url supplied}
 \usage{
 ls_url(url)
 }

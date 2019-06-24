@@ -6,10 +6,10 @@
 \arguments{
   \item{I}{IRanges interval object}
 }
-\details{This function is called upon by SCANVIS.scan}
+\details{This function is called upon by SCANVISscan}
 \value{a matrix with start and end coordinates for the intervals in I}
 \examples{
 I=IRanges(1:10,21:30)
 m=IR2Mat(I)
 }
-\keyword{SCANVIS.scan}
+\keyword{SCANVISscan}
