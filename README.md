@@ -30,7 +30,7 @@ The **scan**, **linkvar** and **visual** SCANVIS functions require a gencode obj
 
 `gen=SCANVIS.annotation(<FTP.URL>)`
 
-The next step is to score and annotate a set of splice junctions using the **SCANVISscan** function. A <SJ> 4 column matrix be prepared with columns labeled as "chr", "start", "end", "uniq.reads" to indicate the genomic coordinates and read support for the junctions. Note that such data is standard output from the [STAR](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4631051/) alignment software, and the **SCANVIS.read_STAR** can be used to read in STAR output as required for **SCANVIS.scan**. However users may derive SJ details from any alignment software of choice. To score and annotate SJs, execute the following command:
+The next step is to score and annotate a set of splice junctions using the **SCANVISscan** function. A <SJ> 4 column matrix be prepared with columns labeled as "chr", "start", "end", "uniq.reads" to indicate the genomic coordinates and read support for the junctions. Note that such data is standard output from the [STAR](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4631051/) alignment software, and the **SCANVISreadSTAR** can be used to read in STAR output as required for **SCANVISscan**. However users may derive SJ details from any alignment software of choice. To score and annotate SJs, execute the following command:
 
 `scn=SCANVISscan(SJ,gen)`
 
