@@ -122,116 +122,116 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     print('*** Categorizing unannotated splice junctions ... ***')
     Q=which(sj[,'JuncType']!='annot')
     if(length(Q)>0){
-    	sj.orig=sj
-    	sj=sj[Q,]
-	    out=rep('Unknown',length(Q))
-	    genEXONS=gen.EXONS[which(gen.EXONS[,'type']=='exon'),]
-	    CHR=unique(sj[,'chr'])
-	    for(chr in CHR){
-	        q=which(sj[,'chr']==chr)
-	        sj.tmp=sj[q,]
-	        sj.coor=cbind((as.numeric(sj[q,'start'])-1),
-	            (as.numeric(sj[q,'end'])+1))
-	        if(length(q)==1)
-	            sj.tmp=t(as.matrix(sj.tmp))
-	        out.tmp=rep('',nrow(sj.tmp))
+        sj.orig=sj
+        sj=sj[Q,]
+        out=rep('Unknown',length(Q))
+        genEXONS=gen.EXONS[which(gen.EXONS[,'type']=='exon'),]
+        CHR=unique(sj[,'chr'])
+        for(chr in CHR){
+            q=which(sj[,'chr']==chr)
+            sj.tmp=sj[q,]
+            sj.coor=cbind((as.numeric(sj[q,'start'])-1),
+                (as.numeric(sj[q,'end'])+1))
+            if(length(q)==1)
+                sj.tmp=t(as.matrix(sj.tmp))
+            out.tmp=rep('',nrow(sj.tmp))
 
-	        h=which(genEXONS[,'chr']==chr)
-	        gen.tmp=genEXONS[h,]
-	        gen.coor=cbind(as.numeric(genEXONS[h,'start']),
+            h=which(genEXONS[,'chr']==chr)
+            gen.tmp=genEXONS[h,]
+            gen.coor=cbind(as.numeric(genEXONS[h,'start']),
                 as.numeric(genEXONS[h,'end']))
-	        gen.strand=unique(genEXONS[h,c('transcript','strand')])
-	        if(length(h)>1){
-	            rownames(gen.strand)=gen.strand[,1]
-	            gen.strand=gen.strand[,2]
-	        }
-	        if(length(h)==1) gen.strand=gen.strand[2]
+            gen.strand=unique(genEXONS[h,c('transcript','strand')])
+            if(length(h)>1){
+                rownames(gen.strand)=gen.strand[,1]
+                gen.strand=gen.strand[,2]
+            }
+            if(length(h)==1) gen.strand=gen.strand[2]
 
-	        B=cbind(1*is.element(sj.coor[,1],gen.coor),
-	            1*is.element(sj.coor[,2],gen.coor))
-	        if(length(h)>1){
-	            tmp=c(gen.tmp[,'transcript'],gen.tmp[,'transcript'])
-	            names(tmp)=c(gen.tmp[,'start'],gen.tmp[,'end'])
-	        }
-	        if(length(h)==1){
-	            tmp=rep(genEXONS[h,'transcript'],2)
-	            names(tmp)=genEXONS[h,c('start','end')]
-	        }
-	        z=which(B[,1]==1)
-	        B[z,1]=tmp[as.character(sj.coor[z,1])]
-	        z=which(B[,2]==1)
-	        B[z,2]=tmp[as.character(sj.coor[z,2])]
+            B=cbind(1*is.element(sj.coor[,1],gen.coor),
+                1*is.element(sj.coor[,2],gen.coor))
+            if(length(h)>1){
+                tmp=c(gen.tmp[,'transcript'],gen.tmp[,'transcript'])
+                names(tmp)=c(gen.tmp[,'start'],gen.tmp[,'end'])
+            }
+            if(length(h)==1){
+                tmp=rep(genEXONS[h,'transcript'],2)
+                names(tmp)=genEXONS[h,c('start','end')]
+            }
+            z=which(B[,1]==1)
+            B[z,1]=tmp[as.character(sj.coor[z,1])]
+            z=which(B[,2]==1)
+            B[z,2]=tmp[as.character(sj.coor[z,2])]
 
-	        BS=cbind(1*is.element(sj.coor[,1],gen.coor[,1]),
-	            1*is.element(sj.coor[,2],gen.coor[,1]))
-	        BE=cbind(1*is.element(sj.coor[,1],gen.coor[,2]),
-	            1*is.element(sj.coor[,2],gen.coor[,2]))
+            BS=cbind(1*is.element(sj.coor[,1],gen.coor[,1]),
+                1*is.element(sj.coor[,2],gen.coor[,1]))
+            BE=cbind(1*is.element(sj.coor[,1],gen.coor[,2]),
+                1*is.element(sj.coor[,2],gen.coor[,2]))
 
-	        #exon skip or isoform jumping
-	        k=intersect(which(B[,1]!=0),which(B[,2]!=0))
-	        if(length(k)>0){
+            #exon skip or isoform jumping
+            k=intersect(which(B[,1]!=0),which(B[,2]!=0))
+            if(length(k)>0){
 
-	            kk=k[which(B[k,1]==B[k,2])]
-	            if(length(kk)>0){
-	                BX=B
-	                tmp=c(gen.tmp[,'exon_number'],gen.tmp[,'exon_number'])
-	                names(tmp)=c(gen.tmp[,'start'],gen.tmp[,'end'])
-	                BX[kk,1]=tmp[as.character(sj.coor[kk,1])]
-	                BX[kk,2]=tmp[as.character(sj.coor[kk,2])]
-	                d=abs(apply(cbind(as.numeric(BX[kk,1]),
-	                    as.numeric(BX[kk,2])),1,diff))
-	                kkk=kk[which(d>1)]
-	                if(length(kkk)>0)
-	                    out.tmp[kkk]='exon.skip'
-	                kkk=kk[which(d<=1)]
-	                if(length(kkk)>0){
-	                    if(length(kkk)>1){
-	                        kkk.s=kkk[which(apply(BS[kkk,],1,sum)==2)]
-	                        if(length(kkk.s)>0)
-	                            out.tmp[kkk.s]='exon.skip.55'
-	                        kkk.e=kkk[which(apply(BE[kkk,],1,sum)==2)]
-	                        if(length(kkk.e)>0)
-	                            out.tmp[kkk.e]='exon.skip.33'
-	                    }
-	                    if(length(kkk)==1){
-	                        tmp=c(sum(BS[kkk,]),sum(BE[kkk,]))
-	                        if(tmp[1]==2) out.tmp[kkk]='exon.skip.55'
-	                        if(tmp[2]==2) out.tmp[kkk]='exon.skip.33'
+                kk=k[which(B[k,1]==B[k,2])]
+                if(length(kk)>0){
+                    BX=B
+                    tmp=c(gen.tmp[,'exon_number'],gen.tmp[,'exon_number'])
+                    names(tmp)=c(gen.tmp[,'start'],gen.tmp[,'end'])
+                    BX[kk,1]=tmp[as.character(sj.coor[kk,1])]
+                    BX[kk,2]=tmp[as.character(sj.coor[kk,2])]
+                    d=abs(apply(cbind(as.numeric(BX[kk,1]),
+                        as.numeric(BX[kk,2])),1,diff))
+                    kkk=kk[which(d>1)]
+                    if(length(kkk)>0)
+                        out.tmp[kkk]='exon.skip'
+                    kkk=kk[which(d<=1)]
+                    if(length(kkk)>0){
+                        if(length(kkk)>1){
+                            kkk.s=kkk[which(apply(BS[kkk,],1,sum)==2)]
+                            if(length(kkk.s)>0)
+                                out.tmp[kkk.s]='exon.skip.55'
+                            kkk.e=kkk[which(apply(BE[kkk,],1,sum)==2)]
+                            if(length(kkk.e)>0)
+                                out.tmp[kkk.e]='exon.skip.33'
+                        }
+                        if(length(kkk)==1){
+                            tmp=c(sum(BS[kkk,]),sum(BE[kkk,]))
+                            if(tmp[1]==2) out.tmp[kkk]='exon.skip.55'
+                            if(tmp[2]==2) out.tmp[kkk]='exon.skip.33'
 
-	                    }
-	                }
-	            }
-	            kk=k[which(B[k,1]!=B[k,2])]
-	            if(length(kk)>0)
-	                out.tmp[kk]='IsoSwitch'
-	        }
+                        }
+                    }
+                }
+                kk=k[which(B[k,1]!=B[k,2])]
+                if(length(kk)>0)
+                    out.tmp[kk]='IsoSwitch'
+            }
 
-	        #alt 3p
-	        k=intersect(which(B[,1]!=0),which(B[,2]==0))
-	        if(length(k)>0){
-	            #paying attention to orientation of the gene
-	            kk=k[which(gen.strand[B[k,1]]=='+')]
-	            if(length(kk)>0) out.tmp[kk]='alt3p'
-	            kk=k[which(gen.strand[B[k,1]]=='-')]
-	            if(length(kk)>0) out.tmp[kk]='alt5p'
-	        }
-	        #alt5p
-	        k=intersect(which(B[,1]==0),which(B[,2]!=0))
-	        if(length(k)>0){
-	            #paying attention to orientation of the gene
-	            kk=k[which(gen.strand[B[k,2]]=='+')]
-	            if(length(kk)>0) out.tmp[kk]='alt5p'
-	            kk=k[which(gen.strand[B[k,2]]=='-')]
-	            if(length(kk)>0) out.tmp[kk]='alt3p'
-	        }
-	        out[q]=out.tmp
-	    }
-	    h=which(out=='')
-	    if(length(h)>0) out[h]='Unknown'
-	    sj=sj.orig
-	    sj[Q,'JuncType']=out
-	    rm(sj.orig)
-	}
+            #alt 3p
+            k=intersect(which(B[,1]!=0),which(B[,2]==0))
+            if(length(k)>0){
+                #paying attention to orientation of the gene
+                kk=k[which(gen.strand[B[k,1]]=='+')]
+                if(length(kk)>0) out.tmp[kk]='alt3p'
+                kk=k[which(gen.strand[B[k,1]]=='-')]
+                if(length(kk)>0) out.tmp[kk]='alt5p'
+            }
+            #alt5p
+            k=intersect(which(B[,1]==0),which(B[,2]!=0))
+            if(length(k)>0){
+                #paying attention to orientation of the gene
+                kk=k[which(gen.strand[B[k,2]]=='+')]
+                if(length(kk)>0) out.tmp[kk]='alt5p'
+                kk=k[which(gen.strand[B[k,2]]=='-')]
+                if(length(kk)>0) out.tmp[kk]='alt3p'
+            }
+            out[q]=out.tmp
+        }
+        h=which(out=='')
+        if(length(h)>0) out[h]='Unknown'
+        sj=sj.orig
+        sj[Q,'JuncType']=out
+        rm(sj.orig)
+    }
     print('*** DONE: Categorizing unannotated splice junctions ***')
     ##END:describe USJs
     ############################################################################
@@ -250,70 +250,70 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     u=sort(table(sj[q,'chr']))
     u=u[which(u>0)]
     for(chr in names(u)){
-    	#################################################################
-    	##START: get genomic intervals o'lap SJs s.t. >=1 gene and >=1 ASJ
+        #################################################################
+        ##START: get genomic intervals o'lap SJs s.t. >=1 gene and >=1 ASJ
         #INTERVALS=getIntervals(sj,gen.GENES,chr)
-	    gen.tmp=gen.GENES[which(gen.GENES[,'chr']==chr),]
-	    gI=IRanges(as.numeric(gen.tmp[,'start']),as.numeric(gen.tmp[,'end']))
+        gen.tmp=gen.GENES[which(gen.GENES[,'chr']==chr),]
+        gI=IRanges(as.numeric(gen.tmp[,'start']),as.numeric(gen.tmp[,'end']))
 
-	    ##define intervals on ASJ only
-	    q=which(sj[,'chr']==chr)
-	    sjI=IRanges(as.numeric(sj[q,'start']),as.numeric(sj[q,'end']))
-	    qA=intersect(q,which(sj[,'JuncType']=='annot'))
-	    qU=intersect(q,which(sj[,'JuncType']!='annot'))
+        ##define intervals on ASJ only
+        q=which(sj[,'chr']==chr)
+        sjI=IRanges(as.numeric(sj[q,'start']),as.numeric(sj[q,'end']))
+        qA=intersect(q,which(sj[,'JuncType']=='annot'))
+        qU=intersect(q,which(sj[,'JuncType']!='annot'))
 
-	    aI=IRanges(as.numeric(sj[qA,'start']),as.numeric(sj[qA,'end']))
-	    if(length(aI)==0){
-	        ##all SJs are USJs ... happens in smaller chr like chrM
-	        INTERVALS=range(IR2Mat(gI))        
-	        INTERVALS=reduce(IRanges(INTERVALS[1],INTERVALS[2]))
-	    }
-	    ##merge annot intervals with gene intervals
-	    if(length(aI)>0){
-	        v=as.matrix(findOverlaps(aI,gI))
-	        gI.tmp=IR2Mat(gI[unique(v[,2]),])
-	        INTERVALS=reduce(IRanges(gI.tmp[,1],gI.tmp[,2]))
-	    }
-	    ##make sure all the unannotated events are included in one interval
-	    if(length(qU)>0){
-	        uI=IRanges(as.numeric(sj[qU,'start']),as.numeric(sj[qU,'end']))
-	        v=as.matrix(findOverlaps(uI,INTERVALS))
-	        h=setdiff(seq(1,length(qU),1),v[,1])
-	        if(length(h)>0){
-	            uI=IR2Mat(uI)
-	            INTERVALS=IR2Mat(INTERVALS)
-	            for(j in h){
-	                d1=cbind(abs(INTERVALS[,1]-uI[j,1]),
-	                    abs(INTERVALS[,2]-uI[j,1]))
-	                d2=cbind(abs(INTERVALS[,1]-uI[j,2]),
-	                    abs(INTERVALS[,2]-uI[j,2]))
-	                dd=apply(cbind(d1,d2),1,min)
-	                k=which(dd==(min(dd)))[1]
-	                INTERVALS[k,]=range(c(INTERVALS[k,],uI[j,]))
-	            }
-	            if(!is.matrix(INTERVALS)) INTERVALS=t(as.matrix(INTERVALS))
-	            INTERVALS=IRanges(INTERVALS[,1],INTERVALS[,2])
-	        }
-	    }
-	    v=as.matrix(findOverlaps(sjI,INTERVALS))
-	    INTERVALS=IR2Mat(INTERVALS)
-	    if(!is.matrix(INTERVALS)) INTERVALS=t(as.matrix(INTERVALS))
-	    if(length(unique(v[,1]))<nrow(v)){
-	        tt=table(v[,1])
-	        tt=tt[which(tt>1)]
-	        for(j in as.numeric(names(tt))){
-	            I.tmp=range(INTERVALS[v[which(v[,1]==j),2]])
-	            INTERVALS=rbind(INTERVALS,I.tmp)
-	            v[which(v[,1]==j),2]=nrow(INTERVALS)
-	        }
-	        v=unique(v)
-	    }
-	    INTERVALS=INTERVALS[v[,2],]
-	    if(!is.matrix(INTERVALS)) INTERVALS=t(as.matrix(INTERVALS))
-	    INTERVALS=IRanges(INTERVALS[,1],INTERVALS[,2])
+        aI=IRanges(as.numeric(sj[qA,'start']),as.numeric(sj[qA,'end']))
+        if(length(aI)==0){
+            ##all SJs are USJs ... happens in smaller chr like chrM
+            INTERVALS=range(IR2Mat(gI))        
+            INTERVALS=reduce(IRanges(INTERVALS[1],INTERVALS[2]))
+        }
+        ##merge annot intervals with gene intervals
+        if(length(aI)>0){
+            v=as.matrix(findOverlaps(aI,gI))
+            gI.tmp=IR2Mat(gI[unique(v[,2]),])
+            INTERVALS=reduce(IRanges(gI.tmp[,1],gI.tmp[,2]))
+        }
+        ##make sure all the unannotated events are included in one interval
+        if(length(qU)>0){
+            uI=IRanges(as.numeric(sj[qU,'start']),as.numeric(sj[qU,'end']))
+            v=as.matrix(findOverlaps(uI,INTERVALS))
+            h=setdiff(seq(1,length(qU),1),v[,1])
+            if(length(h)>0){
+                uI=IR2Mat(uI)
+                INTERVALS=IR2Mat(INTERVALS)
+                for(j in h){
+                    d1=cbind(abs(INTERVALS[,1]-uI[j,1]),
+                        abs(INTERVALS[,2]-uI[j,1]))
+                    d2=cbind(abs(INTERVALS[,1]-uI[j,2]),
+                        abs(INTERVALS[,2]-uI[j,2]))
+                    dd=apply(cbind(d1,d2),1,min)
+                    k=which(dd==(min(dd)))[1]
+                    INTERVALS[k,]=range(c(INTERVALS[k,],uI[j,]))
+                }
+                if(!is.matrix(INTERVALS)) INTERVALS=t(as.matrix(INTERVALS))
+                INTERVALS=IRanges(INTERVALS[,1],INTERVALS[,2])
+            }
+        }
+        v=as.matrix(findOverlaps(sjI,INTERVALS))
+        INTERVALS=IR2Mat(INTERVALS)
+        if(!is.matrix(INTERVALS)) INTERVALS=t(as.matrix(INTERVALS))
+        if(length(unique(v[,1]))<nrow(v)){
+            tt=table(v[,1])
+            tt=tt[which(tt>1)]
+            for(j in as.numeric(names(tt))){
+                I.tmp=range(INTERVALS[v[which(v[,1]==j),2]])
+                INTERVALS=rbind(INTERVALS,I.tmp)
+                v[which(v[,1]==j),2]=nrow(INTERVALS)
+            }
+            v=unique(v)
+        }
+        INTERVALS=INTERVALS[v[,2],]
+        if(!is.matrix(INTERVALS)) INTERVALS=t(as.matrix(INTERVALS))
+        INTERVALS=IRanges(INTERVALS[,1],INTERVALS[,2])
 
-    	##END: get genomic intervals o'lap SJs s.t. >=1 gene and >=1 ASJ
-    	###############################################################
+        ##END: get genomic intervals o'lap SJs s.t. >=1 gene and >=1 ASJ
+        ###############################################################
 
         IIu=unique(IR2Mat(INTERVALS))
         IIr=reduce(IRanges(IIu[,1],IIu[,2]))
@@ -411,77 +411,77 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     colnames(sj)[ncol(sj)]='FrameStatus'
     QFS=which(sj[,'JuncType']!='annot')
     if(length(QFS)>0){
-    	sj.tmp=sj[QFS,]
-	    FS=rep('Unknown',nrow(sj.tmp))
-	    for(chr in unique(sj.tmp[,'chr'])){
-	        q=which(sj.tmp[,'chr']==chr)
-	        q=intersect(q,which(sj.tmp[,'JuncType']!='NE'))
-	        q=intersect(q,which(sj.tmp[,'JuncType']!=''))
-	        q=intersect(q,union(grep('exon.skip',sj.tmp[,'JuncType']),
-	            grep('alt',sj.tmp[,'JuncType'])))
-	        if(length(q)>0){
-	            gen.chr=gen.EXONS[which(gen.EXONS[,'chr']==chr),]
-	            gen.chr.se=cbind(as.numeric(gen.chr[,'start']),
-	                as.numeric(gen.chr[,'end']))
-	            
-	            for(j in q){
-	                v=as.numeric(sj.tmp[j,'start']):as.numeric(sj.tmp[j,'end'])
-	                sj.se=c(v[1]-1,tail(v,1)+1)
-	                h=which(gen.chr.se==sj.se[1],arr.ind=TRUE)[,1]
-	                h=c(h,which(gen.chr.se==sj.se[2],arr.ind=TRUE)[,1])
-	                TX=unique(gen.chr[h,'transcript'])
-	                out.tmp=NULL
-	                for(tx in TX){
-	                    d=NULL
-	                    k=which(gen.chr[,'transcript']==tx)
-	                    h.tx=h[which(gen.chr[h,'transcript']==tx)]
-	                    #exon skipping events
-	                    if(length(grep('exon.skip',sj.tmp[j,'JuncType']))>0){
-	                        tmp=unlist(lapply(k,
-	                            function(x) gen.chr.se[x,1]:gen.chr.se[x,2]))
-	                        d=length(intersect(tmp,v))
-	                    }
-	                    #alt5/3p events
-	                    if(length(grep('alt',sj.tmp[j,'JuncType']))>0){
-	                        m=setdiff(sj.se,gen.chr.se[k,])
-	                        if(length(m)>1)
-	                          stop('Both ends of an alt5/3p event do not align')
-	                        inExon=FALSE
-	                        z=which(gen.chr.se[k,1]<m)    
-	                        if(length(z)>0)
-	                            z=intersect(z,which(gen.chr.se[k,2]>m))
-	                        if(length(z)>0)
-	                            inExon=TRUE
-	                        if(inExon){
-	                            tmp=unlist(lapply(k,function(x) 
-	                                gen.chr.se[x,1]:gen.chr.se[x,2]))
-	                            d=length(intersect(tmp,v))
-	                        }
-	                        if(!inExon){ #adding nt
-	                            d0=cbind(gen.chr.se[k,1]-m,gen.chr.se[k,2]-m)
-	                            da=apply(abs(d0),1,min)
-	                            d=min(da)-1
-	                        }
-	                    }
+        sj.tmp=sj[QFS,]
+        FS=rep('Unknown',nrow(sj.tmp))
+        for(chr in unique(sj.tmp[,'chr'])){
+            q=which(sj.tmp[,'chr']==chr)
+            q=intersect(q,which(sj.tmp[,'JuncType']!='NE'))
+            q=intersect(q,which(sj.tmp[,'JuncType']!=''))
+            q=intersect(q,union(grep('exon.skip',sj.tmp[,'JuncType']),
+                grep('alt',sj.tmp[,'JuncType'])))
+            if(length(q)>0){
+                gen.chr=gen.EXONS[which(gen.EXONS[,'chr']==chr),]
+                gen.chr.se=cbind(as.numeric(gen.chr[,'start']),
+                    as.numeric(gen.chr[,'end']))
+                
+                for(j in q){
+                    v=as.numeric(sj.tmp[j,'start']):as.numeric(sj.tmp[j,'end'])
+                    sj.se=c(v[1]-1,tail(v,1)+1)
+                    h=which(gen.chr.se==sj.se[1],arr.ind=TRUE)[,1]
+                    h=c(h,which(gen.chr.se==sj.se[2],arr.ind=TRUE)[,1])
+                    TX=unique(gen.chr[h,'transcript'])
+                    out.tmp=NULL
+                    for(tx in TX){
+                        d=NULL
+                        k=which(gen.chr[,'transcript']==tx)
+                        h.tx=h[which(gen.chr[h,'transcript']==tx)]
+                        #exon skipping events
+                        if(length(grep('exon.skip',sj.tmp[j,'JuncType']))>0){
+                            tmp=unlist(lapply(k,
+                                function(x) gen.chr.se[x,1]:gen.chr.se[x,2]))
+                            d=length(intersect(tmp,v))
+                        }
+                        #alt5/3p events
+                        if(length(grep('alt',sj.tmp[j,'JuncType']))>0){
+                            m=setdiff(sj.se,gen.chr.se[k,])
+                            if(length(m)>1)
+                              stop('Both ends of an alt5/3p event do not align')
+                            inExon=FALSE
+                            z=which(gen.chr.se[k,1]<m)    
+                            if(length(z)>0)
+                                z=intersect(z,which(gen.chr.se[k,2]>m))
+                            if(length(z)>0)
+                                inExon=TRUE
+                            if(inExon){
+                                tmp=unlist(lapply(k,function(x) 
+                                    gen.chr.se[x,1]:gen.chr.se[x,2]))
+                                d=length(intersect(tmp,v))
+                            }
+                            if(!inExon){ #adding nt
+                                d0=cbind(gen.chr.se[k,1]-m,gen.chr.se[k,2]-m)
+                                da=apply(abs(d0),1,min)
+                                d=min(da)-1
+                            }
+                        }
 
-	                    tt=floor(d/3)==(d/3)
-	                    if(tt) out.tmp=rbind(out.tmp,c(tx,'INframe'))
-	                    if(!tt) out.tmp=rbind(out.tmp,c(tx,'OUTframe'))
-	                }
+                        tt=floor(d/3)==(d/3)
+                        if(tt) out.tmp=rbind(out.tmp,c(tx,'INframe'))
+                        if(!tt) out.tmp=rbind(out.tmp,c(tx,'OUTframe'))
+                    }
 
-	                if(length(out.tmp)==2) FS[j]=out.tmp[2]
-	                if(length(out.tmp)>2){
-	                    u=unique(out.tmp[,2])
-	                    if(length(u)==1) FS[j]=u
-	                    if(length(u)>1){
-	                        FS[j]=paste(unlist(lapply(seq(1,nrow(out.tmp),1),
-	                            function(x) paste(out.tmp[x,1],
-	                                out.tmp[x,2],sep=':'))),collapse=',')
-	                    }
-	                }
-	            }
-	        }
-	    }
+                    if(length(out.tmp)==2) FS[j]=out.tmp[2]
+                    if(length(out.tmp)>2){
+                        u=unique(out.tmp[,2])
+                        if(length(u)==1) FS[j]=u
+                        if(length(u)>1){
+                            FS[j]=paste(unlist(lapply(seq(1,nrow(out.tmp),1),
+                                function(x) paste(out.tmp[x,1],
+                                    out.tmp[x,2],sep=':'))),collapse=',')
+                        }
+                    }
+                }
+            }
+        }
         sj[QFS,'FrameStatus']=FS
         print('*** DONE: Querying FrameStatus ***')
     }
@@ -544,7 +544,7 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
                         if(length(j)==3){
                             zz=NULL
                             if(length(intersect(which((j[1]-INtmp.z[,1])>0),
-                            	which((INtmp.z[,2]-j[1])>0)))>0)
+                                which((INtmp.z[,2]-j[1])>0)))>0)
                                 zz=1
                         }
                         if(length(zz)>0){
@@ -615,7 +615,7 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
     }
     ##return only NEs with at least 3bp
     if(length(NE)>0){
-    	NE=gsub(' ','',NE)
+        NE=gsub(' ','',NE)
         dd=as.numeric(NE[,'end'])-as.numeric(NE[,'start'])
         q=which(dd>=3)
         ##filter for any NEs that are actually Unknown SJs
@@ -636,44 +636,44 @@ SCANVIS.scan<-function(sj,gen,Rcut=5,bam=NULL,samtools=NULL){
         if(length(bam)>0){
             BED=NE[,c('chr','start','end')]
             p=0.2
-		    if(!is.matrix(BED)) BED=t(as.matrix(BED))
-		    n=as.numeric(BED[,3])-as.numeric(BED[,2])+1
-		    n=ceiling(n*(p/2))
-		    bed5=cbind(BED[,1],as.numeric(BED[,2])-n,as.numeric(BED[,2])-1)
-		    bed3=cbind(BED[,1],as.numeric(BED[,3])+1,as.numeric(BED[,3])+n)
+            if(!is.matrix(BED)) BED=t(as.matrix(BED))
+            n=as.numeric(BED[,3])-as.numeric(BED[,2])+1
+            n=ceiling(n*(p/2))
+            bed5=cbind(BED[,1],as.numeric(BED[,2])-n,as.numeric(BED[,2])-1)
+            bed3=cbind(BED[,1],as.numeric(BED[,3])+1,as.numeric(BED[,3])+n)
 
-		    BED=rbind(BED,bed5,bed3)
-		    id=unlist(strsplit(tail(unlist(strsplit(bam,'/')),1),'\\.'))[1]
-		    fbam=paste0('tmp_',id)
-		    write.table(bam,fbam,sep='\t',quote=FALSE,
-		        row.names=FALSE,col.names=FALSE)
-		    sam.bed=paste0(BED[,1],':',BED[,2],'-',BED[,3])
-			nn=NULL
-			cmd=paste("-r sam.bed -f",fbam)
+            BED=rbind(BED,bed5,bed3)
+            id=unlist(strsplit(tail(unlist(strsplit(bam,'/')),1),'\\.'))[1]
+            fbam=paste0('tmp_',id)
+            write.table(bam,fbam,sep='\t',quote=FALSE,
+                row.names=FALSE,col.names=FALSE)
+            sam.bed=paste0(BED[,1],':',BED[,2],'-',BED[,3])
+            nn=NULL
+            cmd=paste("-r sam.bed -f",fbam)
             cmd=paste(cmd,"| awk '{ sum += $3 } END { print sum }'")
-			cmd=paste(samtools,'depth',cmd)
-			for(i in seq(1,length(sam.bed),1)){
-		        fout=paste0('tmp_',id,'__',i)
-		        cmd.tmp=gsub('sam.bed',sam.bed[i],cmd)
-		        cmd.tmp=paste(cmd.tmp,'>',fout)
-		        system(cmd.tmp)
-			    if(file.info(fout)$size>1)
-		            nn=c(nn,as.matrix(read.delim(fout,header=FALSE)))
-		        system(paste('rm',fout))
-			}
-		    system(paste('rm',fbam))
+            cmd=paste(samtools,'depth',cmd)
+            for(i in seq(1,length(sam.bed),1)){
+                fout=paste0('tmp_',id,'__',i)
+                cmd.tmp=gsub('sam.bed',sam.bed[i],cmd)
+                cmd.tmp=paste(cmd.tmp,'>',fout)
+                system(cmd.tmp)
+                if(file.info(fout)$size>1)
+                    nn=c(nn,as.matrix(read.delim(fout,header=FALSE)))
+                system(paste('rm',fout))
+            }
+            system(paste('rm',fbam))
             nn=as.numeric(nn)
-		    ii=1
-		    covB=nn[ii:nrow(BED)]
-		    ii=nrow(BED)+1
-		    cov5p=nn[ii:(ii+nrow(bed5)-1)]
-		    ii=ii+nrow(bed5)
-		    cov3p=nn[ii:length(nn)]
-		    
-		    RRC=covB/(as.numeric(BED[,3])-as.numeric(BED[,2]))    
-		    RRC=cbind(RRC,(covB/(covB+cov5p+cov3p)))
-		    NE=cbind(NE,RRC[,2])
-		    colnames(NE)[ncol(NE)]='RRC'
+            ii=1
+            covB=nn[ii:nrow(BED)]
+            ii=nrow(BED)+1
+            cov5p=nn[ii:(ii+nrow(bed5)-1)]
+            ii=ii+nrow(bed5)
+            cov3p=nn[ii:length(nn)]
+            
+            RRC=covB/(as.numeric(BED[,3])-as.numeric(BED[,2]))    
+            RRC=cbind(RRC,(covB/(covB+cov5p+cov3p)))
+            NE=cbind(NE,RRC[,2])
+            colnames(NE)[ncol(NE)]='RRC'
         }
     }
     #END: assigning RRS scores to NEs

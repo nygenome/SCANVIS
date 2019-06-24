@@ -11,10 +11,6 @@
 ##        col matrix with chr,start,end which will be shown as cyan-colored arcs
 ##       TITLE=default is '', otherwise specify figure title
 ##       bam=default is NULL, otherwise specify url to bam for read profile plot
-##	 bam.dir.out=default is NULL, otherwise MUST be specified if bam not NULL
-##		This is the path to which temporary files can be downloaded
-##		when samtools assesses the bam file to build the read profile
-##		If running multiple samples in parallel, use different paths
 ##       samtools=default is NULL, otherwise path to your samtools, 
 ##                MUST be specified if bam is not NULL (default=NULL)
 ##       full.annot=TRUE for full annotation details, 
@@ -26,7 +22,7 @@
 ##       coordinates of the region plotted
 
 SCANVIS.visual<-function(roi,gen,scn,SJ.special=NULL,TITLE=NULL,bam=NULL,
-    bam.dir.out=NULL,samtools=NULL,full.annot=FALSE,USJ="NR"){
+    samtools=NULL,full.annot=FALSE,USJ="NR"){
 
     if(length(bam)>0 & length(samtools)==0){
         stop('For read coverage plots with bam, 
@@ -349,29 +345,28 @@ SCANVIS.visual<-function(roi,gen,scn,SJ.special=NULL,TITLE=NULL,bam=NULL,
         #plot.bam(roi,bam,samtools)
 		#plot.bam<-function(roi,bam,samtools){
 	    bed=paste0(roi[1],':',roi[2],'-',roi[3])
-	    fout.bam=paste0(bam.dir.out,'/tmpGRP.bam')
-	    write.table(bam,fout.bam,sep='\t',quote=FALSE,
+	    write.table(bam,'tmpGRP.bam',sep='\t',quote=FALSE,
 	        row.names=FALSE,col.names=FALSE)
 	    #print('*** Getting read depth from bam files ... ***')
-	    system(paste(samtools,'depth -a -r',bed,'-f tmpGRP.bam > ',fout.bam))
-	    tmp=as.matrix(read.delim(fout.bam,header=FALSE))
-	    system(paste('rm',fout.bam))
+	    system(paste(samtools,'depth -a -r',bed,'-f tmpGRP.bam > tmpGRP'))
+	    tmp=as.matrix(read.delim('tmpGRP',header=FALSE))
+	    system('rm tmpGRP*')
 	    dat=cbind(as.numeric(tmp[,2]),as.numeric(tmp[,3]))
 	    rm(tmp)
 	    n=nrow(dat)
 	    if(n>20000){
-	        dat0=dat
-	        d=floor(n/20000)
-	        q=seq(1,n,d)
-	        z=tail(q,1)
-	        q=head(q,-1)
-	        dat=dat0[q,]
-	        for(j in seq(2,d,1))
-	            dat[,2]=dat[,2]+dat0[q+j-1,2]
-	        dat[,2]=dat[,2]/d
-	        I=seq(z,nrow(dat0),1)
-	        if(length(I)>1) dat=rbind(dat,c(dat0[I[1],1],mean(dat0[I,2])))
-	        if(length(I)==1) dat=rbind(dat,dat0[I,])
+	        # dat0=dat
+	        # d=floor(n/20000)
+	        # q=seq(1,n,d)
+	        # z=tail(q,1)
+	        # q=head(q,-1)
+	        # dat=dat0[q,]
+	        # for(j in seq(2,d,1))
+	        #     dat[,2]=dat[,2]+dat0[q+j-1,2]
+	        # dat[,2]=dat[,2]/d
+	        # I=seq(z,nrow(dat0),1)
+	        # if(length(I)>1) dat=rbind(dat,c(dat0[I[1],1],mean(dat0[I,2])))
+	        # if(length(I)==1) dat=rbind(dat,dat0[I,])
 	    }
 	    dat[,2]=dat[,2]/max(dat[,2])
 	    dat[,2]=dat[,2]*0.2
@@ -417,7 +412,7 @@ SCANVIS.visual<-function(roi,gen,scn,SJ.special=NULL,TITLE=NULL,bam=NULL,
     if(length(mut4plot)>0){
     	if(!is.matrix(mut4plot)) mut4plot=t(as.matrix(mut4plot))
 		##   A typical mut4plot entry in col1 might look like this: 
-		##   "chr1:953778;rs13303056;G->C|chr1:953779;rs13302945;A->C"
+		##   "chr1:953778 rs13303056 G->C|chr1:953779 rs13302945 A->C"
         ym0=0.005
         ymt0=-0.015
         if(!is.matrix(mut4plot))

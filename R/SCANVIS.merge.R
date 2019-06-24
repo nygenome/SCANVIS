@@ -31,81 +31,84 @@ SCANVIS.merge<-function(scn,method='mean',roi=NULL,gen=NULL){
             otherwise resulting data matrices will be too large')
     }
 
-    RRS=matrix(0,2,2)
-    rownames(RRS)=c('nada1','nada2')
-    colnames(RRS)=rownames(RRS)
-    NR=RRS
-    MUTS=RRS
-
-    for(i in seq(1,length(scn),1)){
-        if(is.list(scn)){
-            id=names(scn)[i]
-            sj=scn[[i]]
-        }
-        if(is.character(scn)){
-            id=scn[i]
-            sj=as.matrix(read.delim(scn[i]))
-        }
-        if(length(roi)>0) sj=sj[which(sj[,'chr']==roi[1]),]
+    #load up data
+    usjcc=c('chr','start','end','JuncType','gene_name','FrameStatus')
+    roi.nn=NULL
+    if(length(roi)>1)
+        roi.nn=as.numeric(roi[2:3])
+    if(is.list(scn)){
+        sj=scn
+        names(sj)=names(scn)
+        if(length(roi)>0)
+            sj=lapply(sj,function(x) x[which(x[,'chr']==roi[1]),])
         if(length(roi)>1){
-            q=which(as.numeric(sj[,'start'])>=as.numeric(roi[2]))
-            q=q[which(as.numeric(sj[q,'end'])<=as.numeric(roi[3]))]
-            sj=sj[q,]
-        }
-        sj=gsub(' ','',sj)
-        rownames(sj)=paste(sj[,'chr'],sj[,'start'],sj[,'end'],sj[,'JuncType'],
-            sj[,'gene_name'],sj[,'FrameStatus'])
-        
-        RRS=cbind(RRS,0)
-        colnames(RRS)[ncol(RRS)]='RRS'
-        NR=cbind(NR,0)
-        colnames(NR)[ncol(NR)]='uniq.reads'
-        dd=setdiff(rownames(sj),rownames(RRS))
-        if(length(dd)>0){
-            tmp=c(rownames(RRS),dd)
-            RRS=rbind(RRS,matrix(0,length(dd),ncol(RRS)))
-            rownames(RRS)=tmp
-            NR=rbind(NR,matrix(0,length(dd),ncol(NR)))
-            rownames(NR)=tmp
-        }
-        xx=intersect(rownames(sj),rownames(RRS))
-        RRS[xx,'RRS']=as.numeric(sj[xx,'RRS'])
-        NR[xx,'uniq.reads']=as.numeric(sj[xx,'uniq.reads'])
-
-        q=max(which(is.element(colnames(sj),c('FrameStatus','covRRS'))))
-        if(ncol(sj)>q){
-            Q=(q+1):ncol(sj)
-            mut.new=sj[,Q] 
-            #MUTS=addmut(MUTS,sj[,Q],id)
-            MUTS=cbind(MUTS,0)
-            colnames(MUTS)[ncol(MUTS)]=id
-            mut.new=as.vector(mut.new)
-            mut.new=mut.new[which(mut.new!='')]
-            mut.new=mut.new[which(!is.na(mut.new))]
-            mm=setdiff(unique(unlist(strsplit(mut.new,'\\|'))),'')
-            if(length(mm)>0){
-                dd=setdiff(mm,rownames(MUTS))
-                if(length(dd)>0){
-                    tmp=c(rownames(MUTS),dd)
-                    MUTS=rbind(MUTS,matrix(0,length(dd),ncol(MUTS)))
-                    rownames(MUTS)=tmp
-                }
-                xx=intersect(mm,rownames(MUTS))
-                MUTS[xx,id]=1
-            }
+            sj=lapply(sj,function(x)
+                x[which(as.numeric(x[,'start'])>=roi.nn[1]),])
+            sj=lapply(sj,function(x)
+                x[which(as.numeric(x[,'end'])<=roi.nn[2]),])
         }
     }
+    if(is.character(scn)){
+        sj=NULL
+        for(i in seq(1,length(scn),1)){
+            id=scn[i]
+            tmp=gsub(' ','',as.matrix(read.delim(scn[i])))
+            if(length(roi)>0)
+                tmp=tmp[which(tmp[,'chr']==roi[1]),]
+            if(length(roi.nn)>0){
+                tmp=tmp[which(as.numeric(tmp[,'start'])>=roi.nn[1]),]
+                tmp=tmp[which(as.numeric(tmp[,'end'])<=roi.nn[2]),]
+            }
+            sj[[i]]=tmp
+        }
+    }
+    #adding rownames
+    for(i in seq(1,length(sj),1)){
+        tmp=sj[[i]][,usjcc]
+        h=which(tmp=='')
+        if(length(h)>0) tmp[h]='NA'
+        tmp=gsub(' ','',tmp)
+        rownames(sj[[i]])=apply(tmp,1,function(x) paste(x,collapse=' '))
+    }
 
-    RRS=RRS[3:nrow(RRS),3:ncol(RRS)]
-    NR=NR[3:nrow(NR),3:ncol(NR)]
-    if(nrow(MUTS)==2) MUTS=NULL
-    if(length(MUTS)>0){
-        if(nrow(MUTS)>3)
-            MUTS=MUTS[3:nrow(MUTS),3:ncol(MUTS)]
-        if(nrow(MUTS)==3){
-            tmp=rownames(MUTS)[3]
-            MUTS=t(as.matrix(MUTS[3,3:ncol(MUTS)]))
-            rownames(MUTS)=tmp
+    #agglomerate data into matrices
+    usj=unique(unlist(lapply(sj,function(x) rownames(x))))
+    N=length(usj)
+    RRS=matrix(0,N,length(scn))
+    rownames(RRS)=usj
+    colnames(RRS)=names(sj)
+    NR=RRS
+    #initializing MUTS matrix
+    MUTS=NULL
+    n1=unlist(lapply(sj,function(x) ncol(x)))
+    n2=unlist(lapply(sj,function(x)
+        max(which(is.element(colnames(x),c('FrameStatus','covRRS'))))))
+    h=which((n1-n2)>0)
+    if(length(h)>0){
+        mm=lapply(sj[h],function(x) x[,(n2[h]+1):n1[h]])
+        tmp=unique(unlist(strsplit(unlist(mm),'\\|')))
+        tmp=setdiff(tmp,'')
+        tmp=tmp[which(!is.na(tmp))]
+        MUTS=matrix(0,length(tmp),length(scn))
+        rownames(MUTS)=tmp
+        colnames(MUTS)=colnames(RRS)
+    }
+
+    for(i in seq(1,length(scn),1)){
+        sj.tmp=sj[[i]]
+        xx=intersect(rownames(RRS),rownames(sj.tmp))
+        RRS[xx,i]=as.numeric(sj.tmp[xx,'RRS'])
+        NR[xx,i]=as.numeric(sj.tmp[xx,'uniq.reads'])
+        if(length(MUTS)>0){
+            q=max(which(is.element(colnames(sj.tmp),c('FrameStatus','covRRS'))))
+            if(ncol(sj.tmp)>q){
+                Q=(q+1):ncol(sj.tmp)
+                mut.new=as.vector(sj.tmp[,Q])
+                mut.new=mut.new[which(mut.new!='')]
+                mut.new=mut.new[which(!is.na(mut.new))]
+                mut.new=setdiff(unique(unlist(strsplit(mut.new,'\\|'))),'')
+                MUTS[mut.new,i]=1
+            }
         }
     }
 
@@ -160,17 +163,3 @@ gene2roi<-function(g,gen){
     return(roi)
 }
 
-# deprecated function
-# add2mat<-function(mat,sj.new,id,whattoadd='RRS'){
-#     mat=cbind(mat,0)
-#     colnames(mat)[ncol(mat)]=id
-#     dd=setdiff(rownames(sj.new),rownames(mat))
-#     if(length(dd)>0){
-#         tmp=c(rownames(mat),dd)
-#         mat=rbind(mat,matrix(0,length(dd),ncol(mat)))
-#         rownames(mat)=tmp
-#     }
-#     xx=intersect(rownames(sj.new),rownames(mat))
-#     mat[xx,id]=as.numeric(sj.new[xx,whattoadd])
-#     return(mat)
-# }
