@@ -47,10 +47,8 @@ SCANVISvisual<-function(roi,gen,scn,SJ.special=NULL,TITLE=NULL,bam=NULL,
             if(length(tmp)==0 | sum(tmp=='SJ')!=1)
                 scn=SCANVISmerge(scn,'mean',roi,gen)
             sj=scn$SJ
-            if(length(grep('MUTS',names(scn)))>0){
-                muts=cbind(rownames(scn$MUTS),apply(scn$MUTS,1,sum))
-                if(!is.matrix(muts)) muts=t(as.matrix(muts))
-            }
+            if(length(grep('MUTS',names(scn)))>0)
+                muts=apply(scn$MUTS,1,sum)
         }
     }
     sj=gsub(' ','',sj)
@@ -86,7 +84,7 @@ SCANVISvisual<-function(roi,gen,scn,SJ.special=NULL,TITLE=NULL,bam=NULL,
             }
         }
         if(length(muts)>0){
-            tmp2=lapply(muts[,1],function(x) 
+            tmp2=lapply(names(muts),function(x) 
                 unlist(strsplit(unlist(strsplit(unlist(strsplit(x,';'))[1],':'))
                     [2],'-')))
             tmp2=as.numeric(tmp2[(grep('chr',tmp2)+1)])
@@ -397,17 +395,16 @@ SCANVISvisual<-function(roi,gen,scn,SJ.special=NULL,TITLE=NULL,bam=NULL,
     }
     if(length(muts)>0){
         print('plotting mutations ...')
-        #tmp=lapply(muts[,1],function(x) unlist(strsplit(unlist(strsplit(unlist(strsplit(x,';'))[1],':'))[2],'-')))
-        #qq=which(unlist(lapply(tmp,function(x) sum(as.numeric(x)>=as.numeric(roi[2]))*sum(as.numeric(x)<=as.numeric(roi[3]))))>0)
-        tmp=unlist(lapply(muts[,1],function(x) unlist(strsplit(x,';'))[1]))
+        #A typical muts name would be chr:pos;A>G
+        tmp=unlist(lapply(names(muts),function(x) unlist(strsplit(x,';'))[1]))
         tmp=unlist(lapply(tmp,function(x) unlist(strsplit(x,':'))[2]))
         tmp=lapply(tmp,function(x) as.numeric(unlist(strsplit(x,'-'))))
         rn=as.numeric(roi[2:3])
         qq=which(unlist(lapply(tmp,function(x) sum(x>=rn[1])*sum(x<=rn[2])))>0)
-        # if(length(qq)>1) plot_mut(muts[qq,c(1,ncol(muts))])
-        # if(length(qq)==1) plot_mut(t(as.matrix(muts[qq,c(1,ncol(muts))])))
-        if(length(qq)>1) mut4plot=rbind(mut4plot,muts[qq,c(1,ncol(muts))])
-        if(length(qq)==1) mut4plot=rbind(mut4plot,muts[qq,c(1,ncol(muts))])
+        if(length(qq)>1) mut4plot=cbind(names(muts)[qq],muts[qq])
+        if(length(qq)==1) mut4plot=t(as.matrix(c(names(muts)[qq],muts[qq])))
+        print(mut4plot)
+        print(length(mut4plot))
     }
     if(length(mut4plot)>0){
     	if(!is.matrix(mut4plot)) mut4plot=t(as.matrix(mut4plot))

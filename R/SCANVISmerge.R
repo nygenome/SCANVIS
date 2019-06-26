@@ -85,7 +85,7 @@ SCANVISmerge<-function(scn,method='mean',roi=NULL,gen=NULL){
         max(which(is.element(colnames(x),c('FrameStatus','covRRS'))))))
     h=which((n1-n2)>0)
     if(length(h)>0){
-        mm=lapply(sj[h],function(x) x[,(n2[h]+1):n1[h]])
+        mm=lapply(h,function(x) sj[[x]][,(n2[x]+1):n1[x]])
         tmp=unique(unlist(strsplit(unlist(mm),'\\|')))
         tmp=setdiff(tmp,'')
         tmp=tmp[which(!is.na(tmp))]
