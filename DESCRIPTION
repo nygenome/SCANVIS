@@ -1,7 +1,7 @@
 Package: SCANVIS
 Type: Package
 Title: SCANVIS - a tool for SCoring, ANnotating and VISualizing splice junctions
-Version: 0.99.20
+Version: 0.99.21
 Date: 2019-07-11
 Author: Phaedra Agius <pagius@nygenome.org>
 Maintainer: Phaedra Agius <pagius@nygenome.org>
