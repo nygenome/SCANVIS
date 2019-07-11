@@ -2,8 +2,8 @@
 \alias{SCANVISvisual}
 \title{a sashimi-style visualization tool}
 \description{
-This function quickly generates color-coded sashimi plots for SCANVISoutputs showing SJs for a query gene or a specific genomic region. 
-Annotated SJs are depicted with grey arcs, while different colors segregate unannotated SJs. Arc height and thickness correspond to the junction read support and RRS score respectively. If the supplied junction file is output from SCANVISlinkvar output, variants are also plotted. If the bam file is supplied, a normalized read coverage profile is shown as an inverted read profile. Users can submit multiple samples in which case the SCANVISmerge function kicks in to merge the samples, so that the resulting sashimi plot shows the union of SJs over the submitted sample cohort, with RRS scores and read support averaged over the samples. This is useful for comparing disease cohorts.
+This function quickly generates color-coded sashimi plots for SCANVIS outputs showing SJs for a query gene or a specific genomic region. 
+Annotated SJs are depicted with grey arcs, while different colors segregate unannotated SJs. Arc height and thickness correspond to the junction read support and RRS score respectively. If the supplied junction file is output from SCANVISlinkvar output, variants are also plotted. If the bam file is supplied, a normalized read coverage profile is shown as an inverted read profile for a single sample. A bam file can only be supplied with one sample, and when supplied users must operate this SCANVISvisual function from a writeable directory. Users may submit multiple samples in which case the SCANVISmerge function kicks in to merge the samples, so that the resulting sashimi plot shows the union of SJs over the submitted sample cohort, with RRS scores and read support averaged over the samples. This is useful for comparing disease cohorts.
 }
 \usage{
 SCANVISvisual(roi, gen, scn, SJ.special = NULL, TITLE = NULL, bam =
@@ -16,7 +16,9 @@ SCANVISvisual(roi, gen, scn, SJ.special = NULL, TITLE = NULL, bam =
 \item{scn}{matrix OR list of url/s to output from SCANVISscan/linkvar (which will be submitted to SCANVISmerge) OR output from SCANVISmerge for a set of samples already merged}
 \item{SJ.special}{3 col matrix indicating chr,start,end of any SJs of interest to be highlighted in cyan (default=NULL)}
 \item{TITLE}{figure name/title (default=NULL)}
-\item{bam}{url to one bam file corresponding to the input scn (not applicable for multiple/merged samples, default=NULL)}
+\item{bam}{url to one bam file corresponding to the input scn (not applicable for multiple/merged samples, default=NULL); 
+the bam url is used to create a read profile in your plot, and during the processing of the bam file, temporary read pileup files
+are written to your current working directory where you must have write permission}
 \item{samtools}{url to samtools which MUST be specified if bam is supplied (default=NULL)}
 \item{full.annot}{TRUE for each isoform listed separately, FALSE for concise format (default=FALSE)}
 \item{USJ}{"NR" or "RRS" where NR induces the function to print the Number of supporting Reads above unannotated junction arcs, while RRS induces the function to print the RRS score as computed by SCANVISscan (default="NR")}
