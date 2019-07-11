@@ -75,20 +75,21 @@ SCANVISvisual<-function(roi,gen,scn,SJ.special=NULL,TITLE=NULL,bam=NULL,
        ##expand XLIM to allow for any borderline Sjs
         XLIM=range(c(XLIM,as.numeric(as.vector(sj[,c('start','end')])))) 
         if(length(muts)==0){
+            Xtmp=NULL
             tmp=max(which(is.element(colnames(sj),c('FrameStatus','RRC'))))
             if(ncol(sj)>tmp){
-                tmp2=unlist(strsplit(unlist(strsplit(sj[,(tmp+1):
-                    ncol(sj)],':')),';'))
-                tmp2=as.numeric(tmp2[(grep('chr',tmp2)+1)])
-                XLIM=range(c(XLIM,tmp2)) #expand XLIM to inc all mapped varts
+                Xtmp=unique(sj[,(tmp+1):ncol(sj)])
+                Xtmp=unique(unlist(lapply(Xtmp,
+                    function(x) unlist(strsplit(x,'\\|')))))
             }
-        }
-        if(length(muts)>0){
-            tmp2=lapply(names(muts),function(x) 
-                unlist(strsplit(unlist(strsplit(unlist(strsplit(x,';'))[1],':'))
-                    [2],'-')))
-            tmp2=as.numeric(tmp2[(grep('chr',tmp2)+1)])
-            XLIM=range(c(XLIM,tmp2))
+            if(length(muts)>0)
+                Xtmp=lapply(names(muts),function(x) unlist(strsplit(x,';'))[1])
+            if(length(Xtmp)>0){
+                Xtmp=lapply(Xtmp,function(x) unlist(strsplit(x,';'))[1])
+                Xtmp=lapply(Xtmp,function(x) unlist(strsplit(x,':'))[2])
+                Xtmp=unlist(lapply(Xtmp,function(x) unlist(strsplit(x,'-'))))
+                XLIM=range(c(XLIM,as.numeric(Xtmp))) #expand XLIM to inc vars
+            }
         }
     }
     XLIM[1]=XLIM[1]-1
@@ -353,18 +354,18 @@ SCANVISvisual<-function(roi,gen,scn,SJ.special=NULL,TITLE=NULL,bam=NULL,
 	    rm(tmp)
 	    n=nrow(dat)
 	    if(n>20000){
-	        # dat0=dat
-	        # d=floor(n/20000)
-	        # q=seq(1,n,d)
-	        # z=tail(q,1)
-	        # q=head(q,-1)
-	        # dat=dat0[q,]
-	        # for(j in seq(2,d,1))
-	        #     dat[,2]=dat[,2]+dat0[q+j-1,2]
-	        # dat[,2]=dat[,2]/d
-	        # I=seq(z,nrow(dat0),1)
-	        # if(length(I)>1) dat=rbind(dat,c(dat0[I[1],1],mean(dat0[I,2])))
-	        # if(length(I)==1) dat=rbind(dat,dat0[I,])
+	        dat0=dat
+	        d=floor(n/20000)
+	        q=seq(1,n,d)
+	        z=tail(q,1)
+	        q=head(q,-1)
+	        dat=dat0[q,]
+	        for(j in seq(2,d,1))
+	            dat[,2]=dat[,2]+dat0[q+j-1,2]
+	        dat[,2]=dat[,2]/d
+	        I=seq(z,nrow(dat0),1)
+	        if(length(I)>1) dat=rbind(dat,c(dat0[I[1],1],mean(dat0[I,2])))
+	        if(length(I)==1) dat=rbind(dat,dat0[I,])
 	    }
 	    dat[,2]=dat[,2]/max(dat[,2])
 	    dat[,2]=dat[,2]*0.2
@@ -387,9 +388,10 @@ SCANVISvisual<-function(roi,gen,scn,SJ.special=NULL,TITLE=NULL,bam=NULL,
                 h=which(sj[,j]!='')
                 if(length(h)>0)
                     #plot_mut(sj[h,j])
-                    mut4plot=c(mut4plot,sj[h,j])
+                    mut4plot=c(mut4plot,unique(unlist(strsplit(sj[h,j],'\\|'))))
             }
         }
+        mut4plot=unique(mut4plot)
         if(length(mut4plot)>1) mut4plot=cbind(mut4plot,1)
         if(length(mut4plot)==1) mut4plot=t(as.matrix(c(mut4plot,1)))
     }
@@ -403,8 +405,8 @@ SCANVISvisual<-function(roi,gen,scn,SJ.special=NULL,TITLE=NULL,bam=NULL,
         qq=which(unlist(lapply(tmp,function(x) sum(x>=rn[1])*sum(x<=rn[2])))>0)
         if(length(qq)>1) mut4plot=cbind(names(muts)[qq],muts[qq])
         if(length(qq)==1) mut4plot=t(as.matrix(c(names(muts)[qq],muts[qq])))
-        print(mut4plot)
-        print(length(mut4plot))
+        #print(mut4plot)
+        #print(length(mut4plot))
     }
     if(length(mut4plot)>0){
     	if(!is.matrix(mut4plot)) mut4plot=t(as.matrix(mut4plot))
