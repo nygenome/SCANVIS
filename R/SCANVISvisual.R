@@ -76,7 +76,7 @@ SCANVISvisual<-function(roi,gen,scn,SJ.special=NULL,TITLE=NULL,bam=NULL,
         XLIM=range(c(XLIM,as.numeric(as.vector(sj[,c('start','end')])))) 
         if(length(muts)==0){
             Xtmp=NULL
-            tmp=max(which(is.element(colnames(sj),c('FrameStatus','RRC'))))
+            tmp=max(which(is.element(colnames(sj),c('uniq.reads','RRS','FrameStatus','RRC'))))
             if(ncol(sj)>tmp){
                 Xtmp=unique(sj[,(tmp+1):ncol(sj)])
                 Xtmp=unique(unlist(lapply(Xtmp,
